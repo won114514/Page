@@ -14,7 +14,7 @@ export async function GET() {
   });
 
   return rss({
-    title: '我的博客',
+    title: "WON's Blog",
     description: '一个极简的静态博客',
     site: 'https://example.com',
     items: posts.map((post) => ({

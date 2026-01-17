@@ -15,23 +15,48 @@ const { title } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style is:global>
       :root {
         --bg-color: #ffffff;
         --text-color: #1a1a1a;
         --accent-color: #000000;
         --border-color: #e5e5e5;
-        --hover-color: #f5f5f5;
-        --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        --font-serif: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, serif;
+        --code-bg-color: #f8f9fa;
+        --code-text-color: #212529;
+        --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        --font-serif: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, serif;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-color: #1a1a1a;
+          --text-color: #e0e0e0;
+          --accent-color: #ffffff;
+          --border-color: #333333;
+          --code-bg-color: #2d2d2d;
+          --code-text-color: #e0e0e0;
+        }
       }
 
       [data-theme="dark"] {
         --bg-color: #1a1a1a;
-        --text-color: #ffffff;
+        --text-color: #e0e0e0;
         --accent-color: #ffffff;
         --border-color: #333333;
-        --hover-color: #2d2d2d;
+        --code-bg-color: #2d2d2d;
+        --code-text-color: #e0e0e0;
+      }
+
+      [data-theme="light"] {
+        --bg-color: #ffffff;
+        --text-color: #1a1a1a;
+        --accent-color: #000000;
+        --border-color: #e5e5e5;
+        --code-bg-color: #f8f9fa;
+        --code-text-color: #212529;
       }
 
       * {
@@ -44,8 +69,9 @@ const { title } = Astro.props;
         font-family: var(--font-serif);
         background-color: var(--bg-color);
         color: var(--text-color);
-        line-height: 1.6;
+        line-height: 1.75;
         transition: background-color 0.3s ease, color 0.3s ease;
+        font-size: 16px;
       }
 
       a {
@@ -140,14 +166,16 @@ const { title } = Astro.props;
 
       article code {
         font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-        background-color: var(--hover-color);
+        background-color: var(--code-bg-color);
+        color: var(--code-text-color);
         padding: 0.2rem 0.4rem;
         border-radius: 3px;
         font-size: 0.9rem;
       }
 
       article pre {
-        background-color: var(--hover-color);
+        background-color: var(--code-bg-color);
+        color: var(--code-text-color);
         padding: 1rem;
         border-radius: 6px;
         overflow-x: auto;
@@ -209,14 +237,14 @@ const { title } = Astro.props;
   <body>
     <div class="container">
       <header>
-        <h1 class="site-title"><a href="/">My Blog</a></h1>
+        <h1 class="site-title"><a href="/">WON's Blog</a></h1>
         <ThemeToggle />
       </header>
       <main>
         <slot />
       </main>
       <footer>
-        <p>© {new Date().getFullYear()} My Blog. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} WON's Blog. All rights reserved.</p>
       </footer>
     </div>
   </body>
