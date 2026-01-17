@@ -1,0 +1,32 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('posts', ({ data }) => {
+  return data.draft !== true;
+});
+
+// 按日期倒序排序
+posts.sort((a, b) => {
+  const dateA = new Date(a.data.date);
+  const dateB = new Date(b.data.date);
+  return dateB.getTime() - dateA.getTime();
+});
+---
+
+<BaseLayout title="我的博客">
+  <h1>文章列表</h1>
+  <ul class="post-list">
+    {posts.map((post) => (
+      <li class="post-item">
+        <h2><a href={`/${post.slug}`}>{post.data.title}</a></h2>
+        <div class="post-meta">
+          {new Date(post.data.date).toLocaleDateString('zh-CN')}
+        </div>
+        {post.data.excerpt && (
+          <p class="post-excerpt">{post.data.excerpt}</p>
+        )}
+      </li>
+    ))}
+  </ul>
+</BaseLayout>
