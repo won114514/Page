@@ -15,8 +15,8 @@ export async function GET() {
 
   return rss({
     title: "WON's Blog",
-    description: "这是个人人博客，记录了学习、生活、思考等内容",
-    site: 'https://person.page.xiaowon.cn',
+    description: "这是的人博客，记录了学习、生活、思考等内容",
+    site: 'https://personal.page.xiaowon.cn',
     items: posts.map((post) => ({
       title: post.data.title,
       description: post.data.excerpt || '',

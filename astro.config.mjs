@@ -11,5 +11,5 @@ export default defineConfig({
       wrap: true,
     },
   },
-  site: 'https://example.com',
+  site: 'https://personal.page.xiaowon.cn',
 });
