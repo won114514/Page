@@ -1,0 +1,75 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="404 - 页面未找到">
+  <div class="error-container">
+    <h1 class="error-code">404</h1>
+    <h2 class="error-message">页面未找到</h2>
+    <p class="error-description">抱歉，您访问的页面不存在或已被移除。</p>
+    <a href="/" class="error-link">返回首页</a>
+  </div>
+
+  <style scoped>
+    .error-container {
+      text-align: center;
+      padding: 4rem 0;
+    }
+
+    .error-code {
+      font-size: 6rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--accent-color);
+      line-height: 1;
+    }
+
+    .error-message {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    .error-description {
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      color: var(--text-secondary);
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .error-link {
+      display: inline-block;
+      padding: 0.8rem 1.5rem;
+      background-color: var(--accent-color);
+      color: var(--bg-color);
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+    }
+
+    .error-link:hover {
+      background-color: var(--text-primary);
+      text-decoration: none;
+      background-size: 0% 1px;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 600px) {
+      .error-code {
+        font-size: 4rem;
+      }
+
+      .error-message {
+        font-size: 1.5rem;
+      }
+
+      .error-description {
+        font-size: 1rem;
+        padding: 0 1rem;
+      }
+    }
+  </style>
+</BaseLayout>
