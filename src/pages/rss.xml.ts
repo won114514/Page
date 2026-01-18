@@ -15,13 +15,13 @@ export async function GET() {
 
   return rss({
     title: "WON's Blog",
-    description: '一个极简的静态博客',
-    site: 'https://example.com',
+    description: "这是个人人博客，记录了学习、生活、思考等内容",
+    site: 'https://person.page.xiaowon.cn',
     items: posts.map((post) => ({
       title: post.data.title,
       description: post.data.excerpt || '',
       pubDate: post.data.date,
-      link: `/${post.slug}`,
+      link: `/posts/${post.slug}`,
     })),
     customData: `<language>zh-CN</language>`,
   });
