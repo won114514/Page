@@ -43,11 +43,11 @@ const countWords = (content: string) => {
   
   <div class="archive-container">
     {Object.entries(postsByYear).map(([year, yearPosts]) => (
-      <div class="archive-year" key={year}>
+      <div class="archive-year">
         <h2 class="archive-year-title">{year}</h2>
         <ul class="archive-posts">
           {yearPosts.map(post => (
-            <li class="archive-post-item" key={post.slug}>
+            <li class="archive-post-item">
               <div class="archive-post-header">
                 <a href={`/${post.slug}`} class="archive-post-title">{post.data.title}</a>
               </div>
@@ -101,13 +101,6 @@ const countWords = (content: string) => {
     .archive-post-title {
       font-size: 1.1rem;
       font-weight: 500;
-      color: var(--text-color);
-      text-decoration: none;
-      transition: color 0.3s ease;
-    }
-
-    .archive-post-title:hover {
-      color: var(--accent-color);
     }
 
     .archive-post-meta {

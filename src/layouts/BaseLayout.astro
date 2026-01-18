@@ -76,14 +76,7 @@ const { title } = Astro.props;
         font-size: 16px;
       }
 
-      a {
-        color: var(--accent-color);
-        text-decoration: none;
-      }
 
-      a:hover {
-        text-decoration: underline;
-      }
 
       .container {
         max-width: 800px;
@@ -197,7 +190,7 @@ const { title } = Astro.props;
         background-repeat: no-repeat;
         background-position-y: calc(100% + var(--underline-offset));
         /* 配置过渡效果 */
-        transition: background-size var(--underline-animation-duration) ease-in-out;
+        transition: background-size var(--underline-animation-duration) ease-in-out, color 0.3s ease;
       }
 
       a:hover {
@@ -394,9 +387,10 @@ const { title } = Astro.props;
       const hideLoadingIndicator = () => {
         const loadingOverlay = document.querySelector('.loading-overlay');
         if (loadingOverlay) {
-          loadingOverlay.style.opacity = '0';
+          const overlay = loadingOverlay as HTMLElement;
+          overlay.style.opacity = '0';
           setTimeout(() => {
-            loadingOverlay.style.display = 'none';
+            overlay.style.display = 'none';
           }, 300);
         }
       };
@@ -405,9 +399,10 @@ const { title } = Astro.props;
       const showLoadingIndicator = () => {
         const loadingOverlay = document.querySelector('.loading-overlay');
         if (loadingOverlay) {
-          loadingOverlay.style.display = 'flex';
+          const overlay = loadingOverlay as HTMLElement;
+          overlay.style.display = 'flex';
           setTimeout(() => {
-            loadingOverlay.style.opacity = '0.8';
+            overlay.style.opacity = '0.8';
           }, 10);
         }
       };
@@ -424,12 +419,13 @@ const { title } = Astro.props;
 
       // 拦截同域链接点击，实现平滑导航
       document.addEventListener('click', (e) => {
-        const target = e.target.closest('a');
+        const target = e.target as HTMLElement;
+        const anchor = target?.closest?.('a') as HTMLAnchorElement | null;
         if (
-          target && 
-          target.tagName === 'A' && 
-          target.origin === window.location.origin &&
-          !target.getAttribute('target') &&
+          anchor && 
+          anchor.tagName === 'A' && 
+          anchor.origin === window.location.origin &&
+          !anchor.getAttribute('target') &&
           !e.ctrlKey &&
           !e.metaKey &&
           !e.shiftKey
@@ -441,7 +437,7 @@ const { title } = Astro.props;
           
           // 延迟导航，让加载指示器有足够时间显示
           setTimeout(() => {
-            window.location.href = target.href;
+            window.location.href = anchor.href;
           }, 100);
         }
       });
@@ -452,7 +448,8 @@ const { title } = Astro.props;
         links.forEach(link => {
           const preloadLink = document.createElement('link');
           preloadLink.rel = 'prefetch';
-          preloadLink.href = link.href;
+          const anchor = link as HTMLAnchorElement;
+          preloadLink.href = anchor.href;
           document.head.appendChild(preloadLink);
         });
       };

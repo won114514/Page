@@ -23,13 +23,15 @@
     html.setAttribute('data-theme', 'light');
   }
 
-  toggle.addEventListener('click', () => {
-    if (html.getAttribute('data-theme') === 'dark') {
-      html.setAttribute('data-theme', 'light');
-      localStorage.theme = 'light';
-    } else {
-      html.setAttribute('data-theme', 'dark');
-      localStorage.theme = 'dark';
-    }
-  });
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      if (html.getAttribute('data-theme') === 'dark') {
+        html.setAttribute('data-theme', 'light');
+        localStorage.theme = 'light';
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        localStorage.theme = 'dark';
+      }
+    });
+  }
 </script>
