@@ -34,7 +34,7 @@ const countWords = (content: string) => {
   <ul class="post-list">
     {posts.map((post) => (
       <li class="post-item">
-        <h2><a href={`/${post.slug}`}>{post.data.title}</a></h2>
+        <h2><a href={`/posts/${post.slug}`}>{post.data.title}</a></h2>
         <div class="post-meta">
           {new Date(post.data.date).toLocaleDateString('zh-CN')} · {countWords(post.body)} 字
         </div>

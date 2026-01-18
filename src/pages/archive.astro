@@ -49,7 +49,7 @@ const countWords = (content: string) => {
           {yearPosts.map(post => (
             <li class="archive-post-item">
               <div class="archive-post-header">
-                <a href={`/${post.slug}`} class="archive-post-title">{post.data.title}</a>
+                <a href={`/posts/${post.slug}`} class="archive-post-title">{post.data.title}</a>
               </div>
               <div class="archive-post-meta">
                 <span class="archive-post-date">{new Date(post.data.date).toLocaleDateString('zh-CN')}</span>
