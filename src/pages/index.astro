@@ -12,6 +12,21 @@ posts.sort((a, b) => {
   const dateB = new Date(b.data.date);
   return dateB.getTime() - dateA.getTime();
 });
+
+// 计算文章字数
+const countWords = (content: string) => {
+  // 移除Markdown语法
+  const text = content
+    .replace(/\n/g, ' ')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/`(.*?)`/g, '$1')
+    .replace(/#{1,6}\s/g, '')
+    .replace(/!\[.*?\]\(.*?\)/g, '')
+    .replace(/\[.*?\]\(.*?\)/g, '$1')
+    .trim();
+  return text.length > 0 ? text.length : 0;
+};
 ---
 
 <BaseLayout title="WON's Blog">
@@ -21,7 +36,7 @@ posts.sort((a, b) => {
       <li class="post-item">
         <h2><a href={`/${post.slug}`}>{post.data.title}</a></h2>
         <div class="post-meta">
-          {new Date(post.data.date).toLocaleDateString('zh-CN')}
+          {new Date(post.data.date).toLocaleDateString('zh-CN')} · {countWords(post.body)} 字
         </div>
         {post.data.excerpt && (
           <p class="post-excerpt">{post.data.excerpt}</p>

@@ -1,0 +1,130 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('posts', ({ data }) => {
+  return data.draft !== true;
+});
+
+// 按日期倒序排序
+posts.sort((a, b) => {
+  const dateA = new Date(a.data.date);
+  const dateB = new Date(b.data.date);
+  return dateB.getTime() - dateA.getTime();
+});
+
+// 按年份分组
+const postsByYear: Record<string, typeof posts> = {};
+posts.forEach(post => {
+  const year = new Date(post.data.date).getFullYear();
+  if (!postsByYear[year]) {
+    postsByYear[year] = [];
+  }
+  postsByYear[year].push(post);
+});
+
+// 计算文章字数
+const countWords = (content: string) => {
+  const text = content
+    .replace(/\n/g, ' ')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/`(.*?)`/g, '$1')
+    .replace(/#{1,6}\s/g, '')
+    .replace(/!\[.*?\]\(.*?\)/g, '')
+    .replace(/\[.*?\]\(.*?\)/g, '$1')
+    .trim();
+  return text.length > 0 ? text.length : 0;
+};
+---
+
+<BaseLayout title="归档 - WON's Blog">
+  <h1>文章归档</h1>
+  
+  <div class="archive-container">
+    {Object.entries(postsByYear).map(([year, yearPosts]) => (
+      <div class="archive-year" key={year}>
+        <h2 class="archive-year-title">{year}</h2>
+        <ul class="archive-posts">
+          {yearPosts.map(post => (
+            <li class="archive-post-item" key={post.slug}>
+              <div class="archive-post-header">
+                <a href={`/${post.slug}`} class="archive-post-title">{post.data.title}</a>
+              </div>
+              <div class="archive-post-meta">
+                <span class="archive-post-date">{new Date(post.data.date).toLocaleDateString('zh-CN')}</span>
+                <span class="archive-post-word-count">{countWords(post.body)} 字</span>
+              </div>
+              {post.data.excerpt && (
+                <p class="archive-post-excerpt">{post.data.excerpt}</p>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </div>
+
+  <style scoped>
+    .archive-container {
+      margin-top: 2rem;
+    }
+
+    .archive-year {
+      margin-bottom: 2rem;
+    }
+
+    .archive-year-title {
+      font-size: 1.75rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .archive-posts {
+      list-style: none;
+    }
+
+    .archive-post-item {
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .archive-post-item:last-child {
+      border-bottom: none;
+    }
+
+    .archive-post-header {
+      margin-bottom: 0.5rem;
+    }
+
+    .archive-post-title {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--text-color);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .archive-post-title:hover {
+      color: var(--accent-color);
+    }
+
+    .archive-post-meta {
+      font-size: 0.85rem;
+      color: var(--text-color);
+      opacity: 0.7;
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .archive-post-excerpt {
+      font-size: 0.9rem;
+      color: var(--text-color);
+      opacity: 0.8;
+      margin: 0;
+      line-height: 1.5;
+    }
+  </style>
+</BaseLayout>
