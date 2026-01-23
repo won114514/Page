@@ -4,14 +4,20 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview"
+    "build": "astro build && node src/utils/build-search-index.mjs",
+    "preview": "astro preview",
+    "build:search-index": "node src/utils/build-search-index.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^3.1.9",
     "@astrojs/rss": "^4.0.9",
     "astro": "^4.16.10",
-    "shiki": "^1.17.0"
+    "fuse.js": "^7.1.0",
+    "remark-html": "^16.0.1",
+    "remark-parse": "^11.0.0",
+    "shiki": "^1.17.0",
+    "strip-markdown": "^6.0.0",
+    "unified": "^11.0.5"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",

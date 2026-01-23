@@ -1,6 +1,7 @@
 ---
 import ThemeToggle from '../components/ThemeToggle.astro';
 import LoadingIndicator from '../components/LoadingIndicator.astro';
+import Search from '../components/Search.astro';
 import { config } from '../config';
 
 interface Props {
@@ -258,6 +259,21 @@ const { title } = Astro.props;
       article h3 {
         font-size: 1.25rem;
         margin: 1.5rem 0 1rem;
+        /* 添加与 a 标签相同的动态下划线效果 */
+        text-decoration: none;
+        position: relative;
+        line-height: 1.4;
+        background-image: linear-gradient(to right, var(--accent-color), var(--accent-color));
+        background-size: 0% 1px;
+        background-position: 0% 100%;
+        background-repeat: no-repeat;
+        background-position-y: 100%;
+        transition: background-size 0.3s ease-in-out, color 0.3s ease;
+      }
+
+      article h3:hover {
+        /* 悬停时展开下划线，从左到右 */
+        background-size: 100% 1px;
       }
 
       article p {
@@ -389,6 +405,7 @@ const { title } = Astro.props;
             <a href="/archive" class="nav-link">归档</a>
             <a href="/sponsors" class="nav-link">赞助</a>
           </div>
+          <Search />
           <ThemeToggle />
         </nav>
       </header>
