@@ -152,16 +152,16 @@ declare module 'astro:content' {
 
 	type ContentEntryMap = {
 		"posts": {
-"jiaguo.md": {
-	id: "jiaguo.md";
-  slug: "jiaguo";
+"家国情怀是民族精神的根基.md": {
+	id: "家国情怀是民族精神的根基.md";
+  slug: "家国情怀是民族精神的根基";
   body: string;
   collection: "posts";
   data: InferEntrySchema<"posts">
 } & { render(): Render[".md"] };
-"jiaguozuowen.md": {
-	id: "jiaguozuowen.md";
-  slug: "jiaguozuowen";
+"家国情怀是民族精神的根基——修改版.md": {
+	id: "家国情怀是民族精神的根基——修改版.md";
+  slug: "家国情怀是民族精神的根基修改版";
   body: string;
   collection: "posts";
   data: InferEntrySchema<"posts">
