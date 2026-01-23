@@ -1,6 +1,7 @@
 ---
 import ThemeToggle from '../components/ThemeToggle.astro';
 import LoadingIndicator from '../components/LoadingIndicator.astro';
+import { config } from '../config';
 
 interface Props {
   title: string;
@@ -19,7 +20,7 @@ const { title } = Astro.props;
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script defer src="https://umami.xiaowon.cn/script.js" data-website-id="61b3a3d3-4afb-4471-8bb4-29f93941ce75"></script>
+    <script is:inline defer src="https://umami.xiaowon.cn/script.js" data-website-id="61b3a3d3-4afb-4471-8bb4-29f93941ce75"></script>
     <style is:global>
       :root {
         --bg-color: #ffffff;
@@ -382,7 +383,7 @@ const { title } = Astro.props;
     <div class="container">
       <header>
         <nav class="nav-container">
-          <h1 class="site-title"><a href="/">WON's Blog</a></h1>
+          <h1 class="site-title"><a href="/">{config.title}</a></h1>
           <div class="nav-links">
             <a href="/" class="nav-link">首页</a>
             <a href="/archive" class="nav-link">归档</a>
@@ -395,7 +396,7 @@ const { title } = Astro.props;
         <slot />
       </main>
       <footer>
-        <p>© {new Date().getFullYear()} WON's Blog. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} {config.title}. All rights reserved.</p>
       </footer>
     </div>
 

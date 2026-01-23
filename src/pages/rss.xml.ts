@@ -1,5 +1,6 @@
 import { getCollection } from 'astro:content';
 import rss from '@astrojs/rss';
+import { config } from '../config';
 
 export async function GET() {
   const posts = await getCollection('posts', ({ data }) => {
@@ -14,9 +15,9 @@ export async function GET() {
   });
 
   return rss({
-    title: "WON's Blog",
-    description: "这是的人博客，记录了学习、生活、思考等内容",
-    site: 'https://personal.page.xiaowon.cn',
+    title: config.title,
+    description: config.description,
+    site: config.site,
     items: posts.map((post) => ({
       title: post.data.title,
       description: post.data.excerpt || '',

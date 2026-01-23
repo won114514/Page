@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
+import { config } from './src/config';
 
 export default defineConfig({
   integrations: [mdx()],
@@ -11,5 +12,7 @@ export default defineConfig({
       wrap: true,
     },
   },
-  site: 'https://personal.page.xiaowon.cn',
+  site: config.site,
+  title: config.title,
+  description: config.description,
 });

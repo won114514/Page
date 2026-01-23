@@ -1,4 +1,5 @@
 ---
+import { config } from '@/config';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 
@@ -29,7 +30,7 @@ const countWords = (content: string) => {
 };
 ---
 
-<BaseLayout title="WON's Blog">
+<BaseLayout title={`文章列表 - ${config.title}`}>
   <h1>文章列表</h1>
   <ul class="post-list">
     {posts.map((post) => (

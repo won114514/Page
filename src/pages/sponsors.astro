@@ -1,8 +1,9 @@
 ---
+import { config } from '@/config';
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title="赞助支持 - WON's Blog">
+<BaseLayout title={`赞助支持 - ${config.title}`}>
   <div class="sponsors-container">
     <h1 class="sponsors-title">赞助支持</h1>
     <p class="sponsors-intro">
