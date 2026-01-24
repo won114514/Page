@@ -3,6 +3,38 @@ import { config } from '@/config';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 
+// 预生成所有页码的静态页面
+export async function getStaticPaths() {
+  // 获取所有非草稿文章
+  const allPosts = await getCollection('posts', ({ data }) => {
+    return data.draft !== true;
+  });
+
+  // 按日期倒序排序
+  allPosts.sort((a, b) => {
+    const dateA = new Date(a.data.date);
+    const dateB = new Date(b.data.date);
+    return dateB.getTime() - dateA.getTime();
+  });
+
+  // 分页配置
+  const postsPerPage = 5;
+
+  // 计算总页数
+  const totalPages = Math.ceil(allPosts.length / postsPerPage);
+  
+  // 生成所有页码的路径
+  const paths = Array.from({ length: totalPages }, (_, i) => {
+    const page = i + 1;
+    return {
+      params: { page: page.toString() }, // 动态参数
+      props: { page }, // 传递页码作为 props
+    };
+  });
+  
+  return paths;
+}
+
 // 获取所有非草稿文章
 const allPosts = await getCollection('posts', ({ data }) => {
   return data.draft !== true;
@@ -18,11 +50,11 @@ allPosts.sort((a, b) => {
 // 分页配置
 const postsPerPage = 5;
 
-// 只显示第一页
-const currentPage = 1;
-
 // 计算总页数
 const totalPages = Math.ceil(allPosts.length / postsPerPage);
+
+// 从 params 和 props 获取当前页码
+const { page: currentPage } = Astro.props as { page: number };
 
 // 计算当前页显示的文章
 const startIndex = (currentPage - 1) * postsPerPage;
@@ -35,7 +67,6 @@ const countWords = (content: string) => {
   const text = content
     .replace(/\n/g, ' ')
     .replace(/\*\*(.*?)\*\*/g, '$1')
-    .replace(/\*(.*?)\*\*/g, '$1')
     .replace(/\*(.*?)\*/g, '$1')
     .replace(/`(.*?)`/g, '$1')
     .replace(/#{1,6}\s/g, '')
@@ -74,6 +105,15 @@ const getPageUrl = (pageNumber: number) => {
   {totalPages > 1 && (
     <nav class="pagination">
       <ul class="pagination-list">
+        <!-- 上一页 -->
+        {currentPage > 1 && (
+          <li class="pagination-item">
+            <a href={getPageUrl(currentPage - 1)} class="pagination-link prev">
+              上一页
+            </a>
+          </li>
+        )}
+        
         <!-- 页码 -->
         {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
           <li class={`pagination-item ${currentPage === pageNum ? 'active' : ''}`}>

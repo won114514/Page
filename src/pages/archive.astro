@@ -3,18 +3,36 @@ import { config } from '@/config';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 
-const posts = await getCollection('posts', ({ data }) => {
+// 获取所有非草稿文章
+const allPosts = await getCollection('posts', ({ data }) => {
   return data.draft !== true;
 });
 
 // 按日期倒序排序
-posts.sort((a, b) => {
+allPosts.sort((a, b) => {
   const dateA = new Date(a.data.date);
   const dateB = new Date(b.data.date);
   return dateB.getTime() - dateA.getTime();
 });
 
-// 按年份分组
+// 提取所有不重复的年份并按降序排序
+const years = Array.from(new Set(allPosts.map(post => new Date(post.data.date).getFullYear()))).sort((a, b) => b - a);
+
+// 分页配置
+const postsPerPage = 5;
+
+// 只显示第一页
+const currentPage = 1;
+
+// 计算总页数
+const totalPages = Math.ceil(allPosts.length / postsPerPage);
+
+// 计算当前页显示的文章
+const startIndex = (currentPage - 1) * postsPerPage;
+const endIndex = startIndex + postsPerPage;
+const posts = allPosts.slice(startIndex, endIndex);
+
+// 按年份分组当前页的文章
 const postsByYear: Record<string, typeof posts> = {};
 posts.forEach(post => {
   const year = new Date(post.data.date).getFullYear();
@@ -37,88 +55,103 @@ const countWords = (content: string) => {
     .trim();
   return text.length > 0 ? text.length : 0;
 };
+
+// 生成页码链接
+const getPageUrl = (pageNumber: number) => {
+  if (pageNumber === 1) {
+    return '/archive';
+  }
+  return `/archive/${pageNumber}`;
+};
 ---
 
 <BaseLayout title={`归档 - ${config.title}`}>
   <h1>文章归档</h1>
   
-  <div class="archive-container">
-    {Object.entries(postsByYear).map(([year, yearPosts]) => (
-      <div class="archive-year">
-        <h2 class="archive-year-title">{year}</h2>
-        <ul class="archive-posts">
-          {yearPosts.map(post => (
-            <li class="archive-post-item">
-              <div class="archive-post-header">
-                <a href={`/posts/${post.slug}`} class="archive-post-title">{post.data.title}</a>
-              </div>
-              <div class="archive-post-meta">
-                <span class="archive-post-date">{new Date(post.data.date).toLocaleDateString('zh-CN')}</span>
-                <span class="archive-post-word-count">{countWords(post.body)} 字</span>
-              </div>
-              {post.data.excerpt && (
-                <p class="archive-post-excerpt">{post.data.excerpt}</p>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
-    ))}
+  <p class="archive-intro">请选择以下年份查看对应文章：</p>
+  
+  <!-- 年份导航 -->
+  <div class="year-navigation">
+    <h2>按年份浏览</h2>
+    <div class="year-links">
+      {years.map(year => (
+        <a href={`/archive/${year}`} class="year-link">
+          {year}年
+        </a>
+      ))}
+    </div>
+  </div>
+  
+  <div class="archive-stats">
+    <p>共有 <strong>{allPosts.length}</strong> 篇文章，分布在 <strong>{years.length}</strong> 个年份中。</p>
   </div>
 
   <style scoped>
-    .archive-container {
-      margin-top: 2rem;
-    }
-
-    .archive-year {
+    /* 年份导航样式 */
+    .year-navigation {
       margin-bottom: 2rem;
+      padding: 1rem;
+      background-color: rgba(var(--border-color), 0.1);
+      border-radius: 8px;
     }
-
-    .archive-year-title {
-      font-size: 1.75rem;
+    
+    .year-navigation h2 {
+      font-size: 1.25rem;
       margin-bottom: 1rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .archive-posts {
-      list-style: none;
-    }
-
-    .archive-post-item {
-      padding: 1rem 0;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .archive-post-item:last-child {
-      border-bottom: none;
-    }
-
-    .archive-post-header {
-      margin-bottom: 0.5rem;
-    }
-
-    .archive-post-title {
-      font-size: 1.1rem;
-      font-weight: 500;
-    }
-
-    .archive-post-meta {
-      font-size: 0.85rem;
       color: var(--text-color);
-      opacity: 0.7;
+    }
+    
+    .year-links {
       display: flex;
       gap: 1rem;
-      margin-bottom: 0.5rem;
+      flex-wrap: wrap;
     }
-
-    .archive-post-excerpt {
+    
+    .year-link {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background-color: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: var(--text-color);
+      text-decoration: none;
+      transition: all 0.3s ease;
       font-size: 0.9rem;
+    }
+    
+    .year-link:hover {
+      background-color: var(--border-color);
+      border-color: var(--accent-color);
+      text-decoration: none;
+    }
+    
+    .archive-intro {
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
       color: var(--text-color);
       opacity: 0.8;
-      margin: 0;
-      line-height: 1.5;
+    }
+    
+    .archive-stats {
+      margin-top: 2rem;
+      padding: 1rem;
+      background-color: rgba(var(--border-color), 0.1);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      color: var(--text-color);
+      opacity: 0.9;
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 600px) {
+      .year-links {
+        gap: 0.5rem;
+      }
+      
+      .year-link {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+      }
     }
   </style>
 </BaseLayout>
