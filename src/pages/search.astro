@@ -1,0 +1,217 @@
+---
+import { config } from '@/config';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title={`搜索结果 - ${config.title}`}>
+  <h1>搜索结果</h1>
+  <ul id="search-results-container" class="post-list">
+    <li class="post-item">
+      <p>正在搜索...</p>
+    </li>
+  </ul>
+</BaseLayout>
+
+<script>
+  // 使用动态导入，避免在开发环境中出现资源加载问题
+  let Fuse: any;
+  async function initFuse() {
+    if (!Fuse) {
+      Fuse = (await import('fuse.js')).default;
+    }
+    return Fuse;
+  }
+  
+  // 定义搜索索引项类型
+  interface SearchIndexItem {
+    slug: string;
+    title: string;
+    date: string;
+    excerpt: string;
+    content: string;
+  }
+  
+  // 定义 Fuse 结果类型
+  interface FuseResult {
+    item: SearchIndexItem;
+    matches?: Array<{
+      key?: string;
+      indices?: [number, number][];
+      value?: string;
+      score?: number;
+    }>;
+    score?: number;
+  }
+  
+  // 搜索索引数据
+  let searchIndex: SearchIndexItem[] = [];
+  let fuse: any | null = null;
+  
+  // 加载搜索索引
+  async function loadSearchIndex(): Promise<void> {
+    try {
+      const response = await fetch('/search-index.json');
+      searchIndex = await response.json();
+      
+      // 使用动态导入初始化 Fuse.js 实例
+      const FuseClass = await initFuse();
+      fuse = new FuseClass(searchIndex, {
+        keys: ['title', 'content', 'excerpt'],
+        threshold: 0.2,
+        includeScore: true,
+        includeMatches: true,
+        ignoreLocation: true
+      });
+    } catch (error) {
+      console.error('Failed to load search index:', error);
+    }
+  }
+  
+  // 高亮匹配文本
+  function highlightText(text: string, matches: any[]): string {
+    if (!matches || !matches.length) return text;
+    
+    let result = text;
+    let offset = 0;
+    
+    // 按匹配位置排序，避免重叠问题
+    const allIndices: [number, number][] = [];
+    matches.forEach(match => {
+      if (match.indices) {
+        match.indices.forEach(([start, end]: [number, number]) => {
+          // 确保匹配位置有效，且有实际内容
+          if (start >= 0 && end >= start && start < text.length) {
+            allIndices.push([start, end]);
+          }
+        });
+      }
+    });
+    
+    // 按起始位置排序
+    allIndices.sort((a, b) => a[0] - b[0]);
+    
+    // 去重重叠的匹配
+    const uniqueIndices: [number, number][] = [];
+    let lastEnd = -1;
+    for (const [start, end] of allIndices) {
+      if (start > lastEnd) {
+        uniqueIndices.push([start, end]);
+        lastEnd = end;
+      }
+    }
+    
+    // 应用高亮
+    for (const [start, end] of uniqueIndices) {
+      // 确保有实际内容才生成 mark 标签
+      if (start <= end) {
+        const matchedText = result.substring(start + offset, end + offset + 1);
+        if (matchedText.length > 0) {
+          const highlighted = `<mark>${matchedText}</mark>`;
+          result = result.substring(0, start + offset) + highlighted + result.substring(end + offset + 1);
+          offset += highlighted.length - (end - start + 1);
+        }
+      }
+    }
+    
+    return result;
+  }
+  
+  // 执行搜索
+  async function performSearch() {
+    const searchContainer = document.getElementById('search-results-container');
+    if (!searchContainer) return;
+    
+    // 获取搜索参数
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get('q') || '';
+    
+    if (!searchQuery) {
+      searchContainer.innerHTML = `
+        <li class="post-item">
+          <p>请输入搜索关键词</p>
+        </li>
+      `;
+      return;
+    }
+    
+    // 加载搜索索引
+    await loadSearchIndex();
+    
+    if (!fuse) {
+      searchContainer.innerHTML = `
+        <li class="post-item">
+          <p>搜索服务初始化失败</p>
+        </li>
+      `;
+      return;
+    }
+    
+    // 执行搜索
+    const results = fuse.search(searchQuery, { limit: 20 });
+    
+    // 渲染搜索结果
+    if (results.length === 0) {
+      searchContainer.innerHTML = `
+        <li class="post-item">
+          <h2>未找到匹配文章</h2>
+          <p>尝试使用其他关键词或检查拼写</p>
+        </li>
+      `;
+    } else {
+      const html = results.map((result: FuseResult) => {
+        const item = result.item;
+        let title = item.title;
+        let excerpt = item.excerpt;
+        
+        // 高亮匹配文本
+        let contentHighlight = '';
+        if (result.matches) {
+          result.matches.forEach((match: any) => {
+            if (match.key === 'title') {
+              title = highlightText(title, [match]);
+            } else if (match.key === 'excerpt') {
+              excerpt = highlightText(excerpt, [match]);
+            } else if (match.key === 'content') {
+              // 生成包含匹配内容的高亮片段，无论摘要是否为空
+              const content = match.value;
+              // 获取所有匹配位置
+              const allIndices = match.indices || [];
+              
+              // 使用第一个匹配位置生成片段
+              if (allIndices.length > 0) {
+                const [start, end] = allIndices[0];
+                // 扩大上下文范围，显示更多内容
+                const snippetStart = Math.max(0, start - 100);
+                const snippetEnd = Math.min(content.length, end + 100);
+                let contentSnippet = content.substring(snippetStart, snippetEnd);
+                
+                // 调整匹配位置索引，使其在新的片段中正确显示
+                const adjustedIndices = allIndices.map(([s, e]) => {
+                  return [s - snippetStart, e - snippetStart];
+                });
+                
+                // 高亮片段中的所有匹配内容
+                contentHighlight = highlightText(contentSnippet, [{ indices: adjustedIndices }]);
+              }
+            }
+          });
+        }
+        
+        return `
+          <li class="post-item">
+            <h2><a href="/posts/${item.slug}">${title}</a></h2>
+            <div class="post-meta">
+              ${new Date(item.date).toLocaleDateString('zh-CN')}
+            </div>
+            ${contentHighlight ? `<p class="post-excerpt">${contentHighlight}</p>` : (excerpt ? `<p class="post-excerpt">${excerpt}</p>` : '')}
+          </li>
+        `;
+      }).join('');
+      
+      searchContainer.innerHTML = html;
+    }
+  }
+  
+  // 页面加载完成后执行搜索
+  window.addEventListener('DOMContentLoaded', performSearch);
+</script>
