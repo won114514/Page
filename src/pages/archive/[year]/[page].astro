@@ -107,6 +107,11 @@ const getPageUrl = (pageNumber: number) => {
 ---
 
 <BaseLayout title={`${currentYear}年文章归档 - 第${currentPage}页 - ${config.title}`}>
+  <div class="back-link-container">
+    <a href="/archive" class="back-link">
+      ← 返回归档首页
+    </a>
+  </div>
   <h1>{currentYear}年文章归档 - 第{currentPage}页</h1>
   
   <div class="archive-container">
