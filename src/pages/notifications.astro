@@ -1,0 +1,194 @@
+---
+import { config } from '@/config';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+// 获取所有非草稿通知，并按日期倒序排序
+const allNotifications = await getCollection('notifications', ({ data }) => {
+  return data.draft !== true;
+});
+
+allNotifications.sort((a, b) => {
+  const dateA = new Date(a.data.date);
+  const dateB = new Date(b.data.date);
+  return dateB.getTime() - dateA.getTime();
+});
+
+// 预渲染所有通知内容
+const renderedNotifications = await Promise.all(
+  allNotifications.map(async (notification) => {
+    const { Content } = await notification.render();
+    return { ...notification, Content };
+  })
+);
+---
+
+<BaseLayout title={`通知 - ${config.title}`}>
+  <h1>网站通知</h1>
+  
+  <p class="notifications-intro">这里是网站的最新通知和公告：</p>
+  
+  {renderedNotifications.length > 0 ? (
+    <div class="notifications-list">
+      {renderedNotifications.map((notification) => (
+        <div class={`notification-item ${notification.data.important ? 'notification-important' : ''}`}>
+          <div class="notification-header">
+            <h2 class="notification-title">{notification.data.title}</h2>
+            <span class="notification-date">{new Date(notification.data.date).toLocaleDateString('zh-CN')}</span>
+          </div>
+          <div class="notification-content">
+            <notification.Content />
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div class="no-notifications">
+      <p>暂无通知</p>
+    </div>
+  )}
+
+  <style scoped>
+    .notifications-intro {
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+      color: var(--text-color);
+      opacity: 0.8;
+    }
+
+    .notifications-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .notification-item {
+      padding: 2rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background-color: var(--bg-color);
+      transition: all 0.3s ease;
+    }
+
+    .notification-item:hover {
+      box-shadow: 0 4px 12px rgba(var(--border-color), 0.1);
+      transform: translateY(-2px);
+    }
+
+    .notification-important {
+      border-left: 4px solid #ff4d4f;
+      background-color: rgba(255, 77, 79, 0.05);
+    }
+
+    .notification-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .notification-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin: 0;
+      color: var(--text-color);
+    }
+
+    .notification-date {
+      font-size: 0.9rem;
+      color: var(--text-color);
+      opacity: 0.7;
+    }
+
+    .notification-content {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--text-color);
+    }
+
+    /* 富文本样式 */
+    .notification-content h1,
+    .notification-content h2,
+    .notification-content h3,
+    .notification-content h4,
+    .notification-content h5,
+    .notification-content h6 {
+      margin: 1.5rem 0 1rem;
+      color: var(--text-color);
+    }
+
+    .notification-content p {
+      margin: 1rem 0;
+    }
+
+    .notification-content ul,
+    .notification-content ol {
+      margin: 1rem 0;
+      padding-left: 2rem;
+    }
+
+    .notification-content li {
+      margin: 0.5rem 0;
+    }
+
+    .notification-content a {
+      color: var(--accent-color);
+      text-decoration: none;
+    }
+
+    .notification-content a:hover {
+      text-decoration: underline;
+    }
+
+    .notification-content code {
+      padding: 0.2rem 0.4rem;
+      background-color: rgba(var(--border-color), 0.2);
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+
+    .notification-content pre {
+      padding: 1rem;
+      background-color: rgba(var(--border-color), 0.2);
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+
+    .notification-content pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .no-notifications {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-color);
+      opacity: 0.7;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 600px) {
+      .notification-item {
+        padding: 1.5rem;
+      }
+
+      .notification-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+
+      .notification-title {
+        font-size: 1.1rem;
+      }
+
+      .notification-content {
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</BaseLayout>

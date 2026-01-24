@@ -9,6 +9,16 @@ const postsCollection = defineCollection({
   }),
 });
 
+const notificationsCollection = defineCollection({
+  schema: z.object({
+    title: z.string(),
+    date: z.date(),
+    draft: z.boolean().default(false),
+    important: z.boolean().default(false),
+  }),
+});
+
 export const collections = {
   posts: postsCollection,
+  notifications: notificationsCollection,
 };

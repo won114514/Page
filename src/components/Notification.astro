@@ -1,0 +1,115 @@
+---
+import { getCollection } from 'astro:content';
+
+// 获取所有非草稿通知，并按日期倒序排序
+const allNotifications = await getCollection('notifications', ({ data }) => {
+  return data.draft !== true;
+});
+
+allNotifications.sort((a, b) => {
+  const dateA = new Date(a.data.date);
+  const dateB = new Date(b.data.date);
+  return dateB.getTime() - dateA.getTime();
+});
+
+// 只显示最新的通知（可以根据需要调整数量）
+const latestNotifications = allNotifications.slice(0, 5);
+
+// 预渲染所有通知内容
+const renderedNotifications = await Promise.all(
+  latestNotifications.map(async (notification) => {
+    const { Content } = await notification.render();
+    return { ...notification, Content };
+  })
+);
+---
+
+{renderedNotifications.length > 0 && (
+  <div class="notification-container">
+    {renderedNotifications.map((notification) => (
+      <div class={`notification ${notification.data.important ? 'notification-important' : ''}`}>
+        <div class="notification-header">
+          <h3 class="notification-title">{notification.data.title}</h3>
+          <span class="notification-date">{new Date(notification.data.date).toLocaleDateString('zh-CN')}</span>
+        </div>
+        <div class="notification-content">
+          <notification.Content />
+        </div>
+      </div>
+    ))}
+  </div>
+)}
+
+<style scoped>
+  .notification-container {
+    margin: 2rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .notification {
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-color);
+    transition: all 0.3s ease;
+  }
+
+  .notification:hover {
+    box-shadow: 0 4px 12px rgba(var(--border-color), 0.1);
+    transform: translateY(-2px);
+  }
+
+  .notification-important {
+    border-left: 4px solid #ff4d4f;
+    background-color: rgba(255, 77, 79, 0.05);
+  }
+
+  .notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .notification-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-color);
+  }
+
+  .notification-date {
+    font-size: 0.85rem;
+    color: var(--text-color);
+    opacity: 0.7;
+  }
+
+  .notification-content {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-color);
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 600px) {
+    .notification {
+      padding: 1.25rem;
+    }
+
+    .notification-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .notification-title {
+      font-size: 1rem;
+    }
+
+    .notification-content {
+      font-size: 0.9rem;
+    }
+  }
+</style>
