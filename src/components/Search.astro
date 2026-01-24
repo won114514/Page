@@ -39,13 +39,45 @@
       }
     });
     
-    // 回车键处理 - 跳转到搜索结果页面
+    // 初始化阿里云AI验证码
+    let captcha: AliyunCaptcha;
+    if (window.initAliyunCaptcha) {
+      captcha = window.initAliyunCaptcha({
+        SceneId: "xztyx6ag",  // 场景ID
+        mode: "popup",  // 验证码模式，popup表示弹出式
+        element: "#search-input",  // 页面上预留的渲染验证码的元素
+        button: "#search-input",  // 触发验证码弹窗或无痕验证的元素ID
+        // 验证码验证通过回调函数
+        success: function (captchaVerifyParam) {
+          // 验证通过后执行搜索
+          const searchQuery = searchInput.value.trim();
+          if (searchQuery) {
+            window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
+          }
+        },
+        // 验证码验证失败回调函数
+        fail: function (errorCode) {
+          console.error('验证码验证失败:', errorCode);
+        },
+        // 验证码渲染失败回调函数
+        error: function (errorCode, errorMsg) {
+          console.error('验证码渲染失败:', errorCode, errorMsg);
+        }
+      });
+    }
+    
+    // 回车键处理 - 触发验证码验证
     searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && searchInput.value.trim()) {
         e.preventDefault();
         
-        // 跳转到搜索结果页面
-        window.location.href = `/search?q=${encodeURIComponent(searchInput.value.trim())}`;
+        // 触发验证码验证
+        if (captcha && captcha.show) {
+          captcha.show();
+        } else {
+          // 如果验证码未初始化，直接执行搜索（降级处理）
+          window.location.href = `/search?q=${encodeURIComponent(searchInput.value.trim())}`;
+        }
       }
     });
   }

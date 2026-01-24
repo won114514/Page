@@ -186,7 +186,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                 let contentSnippet = content.substring(snippetStart, snippetEnd);
                 
                 // 调整匹配位置索引，使其在新的片段中正确显示
-                const adjustedIndices = allIndices.map(([s, e]) => {
+                const adjustedIndices = allIndices.map(([s, e]: [number, number]) => {
                   return [s - snippetStart, e - snippetStart];
                 });
                 
