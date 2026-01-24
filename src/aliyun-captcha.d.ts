@@ -9,16 +9,16 @@ interface AliyunCaptchaVerifyParam {
 }
 
 interface AliyunCaptcha {
-  show: () => void;
-  hide: () => void;
-  reset: () => void;
+  show?: () => void;
+  hide?: () => void;
+  reset?: () => void;
 }
 
 interface AliyunCaptchaOptions {
   SceneId: string;
   mode: 'popup' | 'embed';
-  element: string;
-  button: string;
+  element?: string;
+  button?: string;
   success: (captchaVerifyParam: AliyunCaptchaVerifyParam) => void;
   fail: (errorCode: string) => void;
   error: (errorCode: string, errorMsg: string) => void;
