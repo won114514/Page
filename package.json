@@ -4,9 +4,8 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node src/utils/build-search-index.mjs",
-    "preview": "astro preview",
-    "build:search-index": "node src/utils/build-search-index.mjs"
+    "build": "astro build",
+    "preview": "astro preview"
   },
   "dependencies": {
     "@astrojs/mdx": "^3.1.9",
