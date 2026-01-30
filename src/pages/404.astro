@@ -42,18 +42,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .error-link {
       display: inline-block;
       padding: 0.8rem 1.5rem;
-      background-color: var(--accent-color);
-      color: var(--bg-color);
+      background-color: var(--accent-color, #007bff);
+      color: var(--bg-color, #fff);
       text-decoration: none;
       border-radius: 6px;
       font-weight: 500;
-      transition: background-color 0.3s ease;
+      transition: all 0.3s ease;
     }
 
     .error-link:hover {
-      background-color: var(--text-primary);
+      background-color: var(--text-primary, #333);
+      color: var(--bg-color, #fff);
       text-decoration: none;
-      background-size: 0% 1px;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
     }
 
     /* 响应式设计 */
