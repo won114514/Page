@@ -7,22 +7,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <h1>搜索结果</h1>
   
   <!-- 搜索结果容器 -->
-  <!-- 搜索结果容器 -->
   <div id="search-results-container">
-    <div class="verification-loading">
+    <div class="search-loading">
       <div class="loading-spinner"></div>
-      <p class="loading-text">正在进行人机验证...</p>
+      <p class="loading-text">正在搜索...</p>
     </div>
   </div>
-  
-  <!-- 验证失败容器 -->
-  <div id="verification-failed" style="display: none;">
-    <h2>人机验证失败</h2>
-    <p>请刷新页面重新验证</p>
-  </div>
-  
-  <!-- 隐藏的验证码触发按钮 -->
-  <button id="captcha-trigger" style="display: none;">验证</button>
 </BaseLayout>
 
 <script>
@@ -220,134 +210,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
   }
   
-  // 动态加载阿里云AI验证码脚本
-  async function loadAliyunCaptchaScript() {
-    return new Promise<void>((resolve, reject) => {
-      // 检查脚本是否已经加载
-      if (typeof window.initAliyunCaptcha === 'function') {
-        resolve();
-        return;
-      }
-      
-      // 创建脚本元素
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = 'https://o.alicdn.com/captcha-frontend/aliyunCaptcha/AliyunCaptcha.js';
-      
-      // 加载成功回调
-      script.onload = () => {
-        resolve();
-      };
-      
-      // 加载失败回调
-      script.onerror = (error) => {
-        reject(error);
-      };
-      
-      // 添加到页面
-      document.body.appendChild(script);
-    });
-  }
+
   
-  // 初始化验证码
-  async function initCaptcha() {
-    const searchResultsContainer = document.getElementById('search-results-container');
-    
-    try {
-      // 确保触发按钮存在
-      let captchaTrigger = document.getElementById('captcha-trigger');
-      if (!captchaTrigger) {
-        captchaTrigger = document.createElement('button');
-        captchaTrigger.id = 'captcha-trigger';
-        captchaTrigger.style.display = 'block';
-        captchaTrigger.innerHTML = '点击验证';
-        captchaTrigger.style.margin = '20px auto';
-        captchaTrigger.style.padding = '10px 20px';
-        captchaTrigger.style.border = '1px solid #ccc';
-        captchaTrigger.style.borderRadius = '4px';
-        captchaTrigger.style.cursor = 'pointer';
-        document.body.appendChild(captchaTrigger);
-      }
-      
-      // 初始化阿里云AI验证码
-      const captcha = window.initAliyunCaptcha({
-        SceneId: "xztyx6ag",  // 场景ID
-        mode: "popup",  // 验证码模式，popup表示弹出式
-        button: "#captcha-trigger",  // 绑定触发按钮
-        // 验证码验证通过回调函数
-        success: function () {
-          // 隐藏触发按钮
-          if (captchaTrigger) {
-            captchaTrigger.style.display = 'none';
-          }
-          // 验证通过，执行搜索
-          if (searchResultsContainer) {
-            performSearch();
-          }
-        },
-        // 验证码验证失败回调函数
-        fail: function (errorCode) {
-          // 验证失败，显示错误信息
-          if (searchResultsContainer) {
-            searchResultsContainer.innerHTML = `<p>人机验证失败，请重新验证</p>`;
-          }
-        },
-        // 验证码渲染失败回调函数
-        error: function (errorCode, errorMsg) {
-          // 渲染失败，显示错误信息
-          if (searchResultsContainer) {
-            searchResultsContainer.innerHTML = `<p>验证码服务初始化失败，请刷新页面重试</p>`;
-          }
-        }
-      });
-        
-      //添加一个延迟，确保验证码有足够时间初始化
-      setTimeout(() => {
-        if (captchaTrigger) {
-          try {
-            captchaTrigger.click();
-          } catch (error) {
-            //显示错误
-            if (searchResultsContainer) {
-              searchResultsContainer.innerHTML = `<p>无痕验证失败，请刷新页面重试</p>`;
-            }
-          }
-        }
-      }, 1000);
-      
-    } catch (error) {
-      //显示错误
-      if (searchResultsContainer) {
-        searchResultsContainer.innerHTML = `<p>验证码服务初始化失败，请刷新页面重试</p>`;
-      }
-    }
-  }
-  
-  // 页面加载完成后执行验证码验证
+  // 页面加载完成后直接执行搜索
   window.addEventListener('load', async () => {
-    try {
-      // 动态加载验证码脚本
-      await loadAliyunCaptchaScript();
-      
-      // 确保脚本已经加载成功
-      if (typeof window.initAliyunCaptcha === 'function') {
-        // 初始化验证码
-        await initCaptcha();
-      } else {
-        // 降级处理：直接执行搜索
-        performSearch();
-      }
-      
-    } catch (error) {
-      // 降级处理：直接执行搜索
-      performSearch();
-    }
+    await performSearch();
   });
 </script>
 
 <style>
-  /* 人机验证加载动画样式，与全局加载指示器保持一致 */
-  .verification-loading {
+  /* 搜索加载动画样式，与全局加载指示器保持一致 */
+  .search-loading {
     display: flex;
     flex-direction: column;
     align-items: center;

@@ -24,7 +24,7 @@ export async function getStaticPaths() {
   const postsPerPage = 5;
   
   // 生成所有年份和页码的路径
-  const paths = [];
+  const paths: { params: { year: string; page: string }; props: { year: string; page: number } }[] = [];
   
   for (const year of years) {
     // 筛选当前年份的文章

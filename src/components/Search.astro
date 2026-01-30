@@ -92,24 +92,26 @@
     font-size: 0.9rem;
     background-color: var(--bg-color);
     color: var(--text-color);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     font-family: var(--font-sans);
     box-sizing: border-box;
     z-index: 1;
+    transform: scale(1);
   }
   
   .search-input::placeholder {
     color: var(--text-color);
     opacity: 0.5;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.6s ease;
   }
   
   .search-input:focus {
     outline: none;
     border-color: var(--accent-color);
     box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
-    width: 300px;
+    width: 260px;
     background-color: var(--bg-color);
+    transform: scale(1.02);
   }
   
   [data-theme="dark"] .search-input:focus {
@@ -119,6 +121,7 @@
   .search-input:focus + .search-icon,
   .search-input:hover + .search-icon {
     opacity: 0.7;
+    transition: opacity 0.6s ease;
   }
   
   /* 响应式设计 */
@@ -128,7 +131,8 @@
     }
     
     .search-input:focus {
-      width: 280px;
+      width: 240px;
+      transform: scale(1.01);
     }
   }
   
@@ -143,7 +147,8 @@
     }
     
     .search-input:focus {
-      width: 220px;
+      width: 200px;
+      transform: scale(1.01);
     }
   }
 </style>
