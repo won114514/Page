@@ -492,6 +492,14 @@ const { title } = Astro.props;
         hideLoadingIndicator();
       });
 
+      // 处理浏览器返回按钮的情况
+      window.addEventListener('pageshow', (e) => {
+        // 当从浏览器缓存中加载页面时（如使用返回按钮），隐藏加载指示器
+        if (e.persisted) {
+          hideLoadingIndicator();
+        }
+      });
+
       // 页面切换时显示加载指示器
       window.addEventListener('beforeunload', () => {
         showLoadingIndicator();
