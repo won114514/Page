@@ -44,4 +44,91 @@ const { Content } = await post.render();
     </div>
     <Content />
   </article>
+  
+  <!-- Back to Top Button -->
+  <button aria-label="Back to Top" class="back-to-top">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+  </button>
+
+  <style scoped>
+    /* Back to Top Button Styles */
+    .back-to-top {
+      position: fixed;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      z-index: 1000;
+      height: 3.5rem;
+      width: 3.5rem;
+    }
+
+    /* 大屏幕：按钮位于容器右侧 */
+    @media (min-width: 841px) {
+      .back-to-top {
+        right: calc(50% - 400px - 1rem);
+        bottom: 2rem;
+      }
+    }
+
+    /* 中等屏幕：按钮位于窗口右侧 */
+    @media (max-width: 840px) {
+      .back-to-top {
+        right: 1.5rem;
+        bottom: 2rem;
+      }
+    }
+
+    /* 小屏幕：按钮位于窗口右侧，尺寸减小 */
+    @media (max-width: 480px) {
+      .back-to-top {
+        right: 1rem;
+        bottom: 1rem;
+        height: 3rem;
+        width: 3rem;
+      }
+    }
+
+    .back-to-top:hover {
+      background-color: var(--accent-color);
+      color: var(--bg-color);
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+  </style>
+
+  <script>
+    // Back to Top Button Functionality
+    const backToTopButton = document.querySelector('.back-to-top');
+    
+    if (backToTopButton) {
+      // Show/hide button based on scroll position
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+          backToTopButton.style.display = 'flex';
+        } else {
+          backToTopButton.style.display = 'none';
+        }
+      });
+      
+      // Scroll to top when button is clicked
+      backToTopButton.addEventListener('click', () => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
+      
+      // Initially hide button
+      backToTopButton.style.display = 'none';
+    }
+  </script>
 </BaseLayout>
