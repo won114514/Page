@@ -107,7 +107,7 @@ const { Content } = await post.render();
 
   <script>
     // Back to Top Button Functionality
-    const backToTopButton = document.querySelector('.back-to-top');
+    const backToTopButton = document.querySelector('.back-to-top') as HTMLElement | null;
     
     if (backToTopButton) {
       // Show/hide button based on scroll position
