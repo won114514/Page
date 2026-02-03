@@ -161,6 +161,13 @@ declare module 'astro:content' {
 } & { render(): Render[".md"] };
 };
 "posts": {
+"fendou.md": {
+	id: "fendou.md";
+  slug: "fendou";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
 "jiaguo.md": {
 	id: "jiaguo.md";
   slug: "jiaguo";
