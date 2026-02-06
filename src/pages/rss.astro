@@ -1,0 +1,290 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="RSS 订阅 - WONの次元">
+  <main class="container max-w-3xl mx-auto px-4 py-12">
+    <article class="rss-page">
+      <div class="rss-header">
+        <h1>RSS 订阅</h1>
+        <div class="rss-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+        </div>
+      </div>
+      
+      <section class="rss-usage">
+        <h2>本站 RSS 使用方法</h2>
+        <p>
+          要订阅本站的 RSS，请复制以下链接到你的 RSS 阅读器中：
+        </p>
+        <div class="rss-link-container">
+          <code class="rss-link">https://personal.page.xiaowon.cn/rss.xml</code>
+          <button class="copy-button" onclick="navigator.clipboard.writeText('https://blog.xiaowon.cn/rss.xml').then(() => alert('链接已复制到剪贴板！'))">
+            复制链接
+          </button>
+        </div>
+        <p class="rss-note">
+          添加后，你将能够在阅读器中及时获取本站的最新更新，无需手动访问网站。
+        </p>
+      </section>
+      
+      <section class="rss-intro">
+        <p>
+          RSS（Really Simple Syndication）是一种用于发布经常更新内容的标准格式。通过 RSS，你可以：
+        </p>
+        <ul class="feature-list">
+          <li class="feature-item">
+            <span class="feature-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+            </span>
+            <span>及时获取网站最新内容，无需手动访问</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+              </svg>
+            </span>
+            <span>在一个地方管理多个网站的订阅</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </span>
+            <span>避免错过重要更新和文章</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </span>
+            <span>享受无广告的纯净阅读体验</span>
+          </li>
+        </ul>
+      </section>
+      
+      <section class="rss-readers">
+        <h2>推荐使用的 RSS 阅读器</h2>
+        <p>
+          推荐使用以下 RSS 阅读器来订阅本站：
+        </p>
+        <div class="reader-cards">
+          <div class="reader-card">
+            <h3><a href="https://feedly.com/" target="_blank" rel="noopener noreferrer">Feedly</a></h3>
+            <p>功能强大的在线 RSS 阅读器，支持多平台同步</p>
+          </div>
+          <div class="reader-card">
+            <h3><a href="https://www.inoreader.com/" target="_blank" rel="noopener noreferrer">Inoreader</a></h3>
+            <p>支持多种订阅源的阅读器，提供高级过滤功能</p>
+          </div>
+          <div class="reader-card">
+            <h3>其他 RSS 阅读器</h3>
+            <p>只要支持标准 RSS 格式即可使用</p>
+          </div>
+        </div>
+      </section>
+    </article>
+    
+    <style>
+      .rss-page {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      
+      .rss-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+      }
+      
+      .rss-header h1 {
+        font-size: 2.5rem;
+        margin: 0;
+        flex: 1;
+      }
+      
+      .rss-icon {
+        opacity: 0.8;
+        animation: rotate 20s linear infinite;
+      }
+      
+      @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      
+      .rss-intro {
+        margin-bottom: 3rem;
+      }
+      
+      .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 1.5rem 0;
+      }
+      
+      .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background-color: rgba(0, 0, 0, 0.02);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+      }
+      
+      [data-theme="dark"] .feature-item {
+        background-color: rgba(255, 255, 255, 0.02);
+      }
+      
+      .feature-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      
+      [data-theme="dark"] .feature-item:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+      
+      .feature-icon {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--accent-color);
+        color: var(--bg-color);
+        border-radius: 50%;
+      }
+      
+      .rss-readers {
+        margin-bottom: 3rem;
+      }
+      
+      .reader-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+      
+      .reader-card {
+        padding: 1.5rem;
+        background-color: rgba(0, 0, 0, 0.02);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+      }
+      
+      [data-theme="dark"] .reader-card {
+        background-color: rgba(255, 255, 255, 0.02);
+      }
+      
+      .reader-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      
+      [data-theme="dark"] .reader-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+      
+      .reader-card h3 {
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+      }
+      
+      .rss-usage {
+        margin-bottom: 2rem;
+      }
+      
+      .rss-link-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 1.5rem 0;
+        flex-wrap: wrap;
+      }
+      
+      .rss-link {
+        flex: 1;
+        min-width: 300px;
+        padding: 1rem;
+        background-color: var(--code-bg-color);
+        border-radius: 8px;
+        font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', 'Courier New', monospace;
+        font-size: 1rem;
+        line-height: 1.4;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border: 1px solid var(--border-color);
+      }
+      
+      .copy-button {
+        padding: 0.75rem 1.5rem;
+        background-color: var(--accent-color);
+        color: var(--bg-color);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+      
+      .copy-button:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+      
+      .rss-note {
+        font-style: italic;
+        opacity: 0.8;
+        margin-top: 1rem;
+      }
+      
+      @media (max-width: 768px) {
+        .rss-header {
+          flex-direction: column;
+          text-align: center;
+        }
+        
+        .rss-header h1 {
+          font-size: 2rem;
+        }
+        
+        .rss-link-container {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        
+        .rss-link {
+          min-width: unset;
+          white-space: normal;
+        }
+        
+        .reader-cards {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </main>
+</BaseLayout>

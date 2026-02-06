@@ -23,6 +23,7 @@ export async function GET() {
       description: post.data.excerpt || '',
       pubDate: post.data.date,
       link: `/posts/${post.slug}`,
+      content: post.body || '',
     })),
     customData: `<language>zh-CN</language>`,
   });
