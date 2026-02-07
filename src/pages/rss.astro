@@ -26,11 +26,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             复制链接
           </button>
         </div>
-        
-        <!-- 自定义复制提示弹窗 -->
-        <div id="copy-toast" class="copy-toast">
-          <span id="copy-toast-message"></span>
-        </div>
         <p class="rss-note">
           添加后，你将能够在阅读器中及时获取本站的最新更新，无需手动访问网站。
         </p>
@@ -296,7 +291,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       .copy-toast {
         position: fixed;
         top: 20px;
-        right: 20px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-20px) scale(0.9);
         padding: 12px 24px;
         border-radius: 8px;
         background-color: var(--accent-color);
@@ -304,7 +300,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         font-weight: 500;
         z-index: 1000;
         opacity: 0;
-        transform: translateY(-20px);
         transition: all 0.3s ease;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         max-width: 300px;
@@ -313,7 +308,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       
       .copy-toast.show {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateX(-50%) translateY(0) scale(1);
       }
       
       .copy-toast.success {
@@ -355,10 +350,59 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       }
       
       function showToast(message, type = 'success') {
-        const toast = document.getElementById('copy-toast');
-        const toastMessage = document.getElementById('copy-toast-message');
+        // 检查是否已经存在弹窗元素
+        let toast = document.getElementById('copy-toast');
         
-        if (!toast || !toastMessage) return;
+        // 如果不存在，动态创建弹窗元素并添加到body中
+        if (!toast) {
+          toast = document.createElement('div');
+          toast.id = 'copy-toast';
+          toast.className = 'copy-toast';
+          
+          const toastMessage = document.createElement('span');
+          toastMessage.id = 'copy-toast-message';
+          toast.appendChild(toastMessage);
+          
+          // 添加弹窗样式
+          const style = document.createElement('style');
+          style.textContent = `
+            .copy-toast {
+              position: fixed;
+              top: 20px;
+              left: 50%;
+              transform: translateX(-50%) translateY(-20px) scale(0.9);
+              padding: 12px 24px;
+              border-radius: 8px;
+              background-color: var(--accent-color);
+              color: var(--bg-color);
+              font-weight: 500;
+              z-index: 9999;
+              opacity: 0;
+              transition: all 0.3s ease;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+              max-width: 300px;
+              text-align: center;
+            }
+            
+            .copy-toast.show {
+              opacity: 1;
+              transform: translateX(-50%) translateY(0) scale(1);
+            }
+            
+            .copy-toast.success {
+              background-color: #4CAF50;
+            }
+            
+            .copy-toast.error {
+              background-color: #f44336;
+            }
+          `;
+          document.head.appendChild(style);
+          document.body.appendChild(toast);
+        }
+        
+        const toastMessage = document.getElementById('copy-toast-message');
+        if (!toastMessage) return;
         
         // 设置消息内容
         toastMessage.textContent = message;
