@@ -22,9 +22,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         </p>
         <div class="rss-link-container">
           <code class="rss-link">https://personal.page.xiaowon.cn/rss.xml</code>
-          <button class="copy-button" onclick="navigator.clipboard.writeText('https://personal.page.xiaowon.cn/rss.xml').then(() => alert('链接已复制到剪贴板！'))">
+          <button class="copy-button" onclick="copyToClipboard('https://personal.page.xiaowon.cn/rss.xml')">
             复制链接
           </button>
+        </div>
+        
+        <!-- 自定义复制提示弹窗 -->
+        <div id="copy-toast" class="copy-toast">
+          <span id="copy-toast-message"></span>
         </div>
         <p class="rss-note">
           添加后，你将能够在阅读器中及时获取本站的最新更新，无需手动访问网站。
@@ -279,12 +284,96 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         .rss-link {
           min-width: unset;
           white-space: normal;
+          word-break: break-all;
         }
         
         .reader-cards {
           grid-template-columns: 1fr;
         }
       }
+      
+      /* 复制提示弹窗样式 */
+      .copy-toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 24px;
+        border-radius: 8px;
+        background-color: var(--accent-color);
+        color: var(--bg-color);
+        font-weight: 500;
+        z-index: 1000;
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        max-width: 300px;
+        text-align: center;
+      }
+      
+      .copy-toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      
+      .copy-toast.success {
+        background-color: #4CAF50;
+      }
+      
+      .copy-toast.error {
+        background-color: #f44336;
+      }
+      
+      /* 确保复制按钮在小屏幕上也能正常显示 */
+      .copy-button {
+        flex-shrink: 0;
+        min-width: 120px;
+      }
+      
+      /* 防止页面被意外拉大 */
+      .rss-page {
+        overflow-x: hidden;
+      }
+      
+      .rss-link-container {
+        max-width: 100%;
+      }
     </style>
+    
+    <!-- 复制功能脚本 -->
+    <script>
+      // 将函数定义在全局作用域中，确保可以被onclick事件调用
+      window.copyToClipboard = function(text) {
+        navigator.clipboard.writeText(text)
+          .then(() => {
+            showToast('链接已复制到剪贴板！', 'success');
+          })
+          .catch(err => {
+            console.error('复制失败:', err);
+            showToast('复制失败，请手动复制', 'error');
+          });
+      }
+      
+      function showToast(message, type = 'success') {
+        const toast = document.getElementById('copy-toast');
+        const toastMessage = document.getElementById('copy-toast-message');
+        
+        if (!toast || !toastMessage) return;
+        
+        // 设置消息内容
+        toastMessage.textContent = message;
+        
+        // 移除之前的类
+        toast.classList.remove('show', 'success', 'error');
+        
+        // 添加新的类
+        toast.classList.add('show', type);
+        
+        // 3秒后隐藏
+        setTimeout(() => {
+          toast.classList.remove('show');
+        }, 3000);
+      }
+    </script>
   </main>
 </BaseLayout>
