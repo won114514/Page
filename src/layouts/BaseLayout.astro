@@ -22,6 +22,34 @@ const { title } = Astro.props;
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script is:inline defer src="https://umami.xiaowon.cn/script.js" data-website-id="61b3a3d3-4afb-4471-8bb4-29f93941ce75"></script>
+    <!-- MathJax 配置，用于渲染数学公式 -->
+    <script is:inline>
+      // 添加MathJax配置
+      if (typeof window !== 'undefined') {
+        // 直接设置MathJax配置
+        window.MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true,
+            processEnvironments: true
+          },
+          options: {
+            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            processHtmlClass: 'mathjax-process'
+          },
+          startup: {
+            ready: function() {
+              // 调用MathJax的标准初始化
+              MathJax.startup.defaultReady();
+              // 初始渲染后再渲染一次，确保所有公式都被处理
+              MathJax.typesetPromise();
+            }
+          }
+        };
+      }
+    </script>
+    <script is:inline src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
     
     <style is:global>
       :root {
@@ -276,34 +304,94 @@ const { title } = Astro.props;
       article h3 {
         font-size: 1.25rem;
         margin: 1.5rem 0 1rem;
-        /* 添加与 a 标签相同的动态下划线效果 */
         text-decoration: none;
         position: relative;
         line-height: 1.4;
-        background-image: linear-gradient(to right, var(--accent-color), var(--accent-color));
-        background-size: 0% 1px;
-        background-position: 0% 100%;
-        background-repeat: no-repeat;
-        background-position-y: 100%;
-        transition: background-size 0.3s ease-in-out, color 0.3s ease;
+        transition: color 0.3s ease;
       }
 
       article h3:hover {
-        /* 悬停时展开下划线，从左到右 */
-        background-size: 100% 1px;
+        color: var(--accent-color);
       }
 
       article p {
         margin-bottom: 1rem;
       }
 
+      /* 列表样式优化 */
       article ul, article ol {
-        margin-left: 1.5rem;
-        margin-bottom: 1rem;
+        margin-left: 2rem;
+        margin-bottom: 1.25rem;
+        padding-left: 0.5rem;
       }
 
       article li {
+        margin-bottom: 0.75rem;
+        line-height: 1.5;
+        position: relative;
+        padding-left: 0.5rem;
+        transition: all 0.2s ease;
+      }
+
+      /* 无序列表样式 */
+      article ul {
+        list-style-type: disc;
+      }
+
+      article ul ul {
+        list-style-type: circle;
+        margin-top: 0.5rem;
         margin-bottom: 0.5rem;
+      }
+
+      article ul ul ul {
+        list-style-type: square;
+      }
+
+      /* 有序列表样式 */
+      article ol {
+        list-style-type: decimal;
+      }
+
+      article ol ol {
+        list-style-type: lower-alpha;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      article ol ol ol {
+        list-style-type: lower-roman;
+      }
+
+      /* 列表项悬停效果 */
+      article li:hover {
+        color: var(--accent-color);
+        transform: translateX(4px);
+      }
+
+      /* 列表项嵌套样式调整 */
+      article li ul,
+      article li ol {
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        margin-left: 1.5rem;
+      }
+
+      /* 响应式设计 */
+      @media (max-width: 600px) {
+        article ul, article ol {
+          margin-left: 1.5rem;
+          margin-bottom: 1rem;
+        }
+
+        article li {
+          margin-bottom: 0.625rem;
+          padding-left: 0.375rem;
+        }
+
+        article li:hover {
+          transform: translateX(2px);
+        }
       }
 
       article blockquote {
@@ -324,6 +412,27 @@ const { title } = Astro.props;
         background-color: rgba(255, 255, 255, 0.05);
       }
 
+      /* 分割线样式优化 */
+      hr {
+        border: none;
+        height: 1px;
+        background: linear-gradient(to right, transparent, var(--accent-color), transparent);
+        margin: 1.5rem 0;
+        opacity: 0.5;
+        transition: opacity 0.3s ease;
+      }
+
+      hr:hover {
+        opacity: 0.7;
+      }
+
+      /* 响应式设计 */
+      @media (max-width: 600px) {
+        hr {
+          margin: 1.25rem 0;
+        }
+      }
+
       article code {
         font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
         background-color: var(--code-bg-color);
@@ -333,18 +442,295 @@ const { title } = Astro.props;
         font-size: 0.9rem;
       }
 
-      article pre {
-        background-color: var(--code-bg-color);
-        color: var(--code-text-color);
-        padding: 1rem;
+      /* 表格样式优化 */
+      article table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--border-color);
         border-radius: 6px;
-        overflow-x: auto;
-        margin-bottom: 1rem;
+        overflow: hidden;
       }
 
-      article pre code {
-        background: none;
-        padding: 0;
+      article table th,
+      article table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      article table th {
+        background-color: var(--code-bg-color);
+        font-weight: 600;
+        color: var(--accent-color);
+        border-bottom: 2px solid var(--accent-color);
+      }
+
+      article table tr {
+        transition: background-color 0.2s ease;
+      }
+
+      article table tr:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+      }
+
+      article table tr:last-child td {
+        border-bottom: none;
+      }
+
+      /* 暗色模式下的表格样式 */
+      [data-theme="dark"] article table {
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+
+      [data-theme="dark"] article table tr:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+
+      /* 响应式表格设计 */
+      @media (max-width: 768px) {
+        article table {
+          display: block;
+          overflow-x: auto;
+          white-space: nowrap;
+          font-size: 0.8rem;
+        }
+
+        article table th,
+        article table td {
+          padding: 0.625rem 0.875rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        article table th,
+        article table td {
+          padding: 0.5rem 0.75rem;
+        }
+      }
+
+      /* 图片样式优化 */
+      article img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        margin: 1.5rem 0;
+        transition: all 0.3s ease;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        border: 1px solid var(--border-color);
+      }
+
+      article img:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+      }
+
+      /* 图片说明文字样式 */
+      article figure {
+        margin: 1.5rem 0;
+        text-align: center;
+      }
+
+      article figcaption {
+        margin-top: 0.75rem;
+        font-size: 0.875rem;
+        color: var(--text-color);
+        opacity: 0.8;
+        font-style: italic;
+      }
+
+      /* 响应式图片设计 */
+      @media (max-width: 768px) {
+        article img {
+          border-radius: 6px;
+          margin: 1.25rem 0;
+        }
+
+        article figcaption {
+          font-size: 0.8rem;
+          margin-top: 0.625rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        article img {
+          border-radius: 4px;
+          margin: 1rem 0;
+        }
+
+        article figcaption {
+          font-size: 0.75rem;
+          margin-top: 0.5rem;
+        }
+      }
+
+      /* 暗色模式下的图片样式 */
+      [data-theme="dark"] article img {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      [data-theme="dark"] article img:hover {
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+      }
+
+      /* 代码块样式优化 */
+      article pre,
+      article pre.astro-code {
+        background-color: var(--code-bg-color) !important;
+        color: var(--code-text-color) !important;
+        padding: 0.5rem !important;
+        border-radius: 4px !important;
+        overflow-x: auto !important;
+        margin-bottom: 1rem !important;
+        font-family: var(--font-sans) !important;
+        font-size: 0.85rem !important;
+        line-height: 1 !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important;
+        border: 1px solid var(--border-color) !important;
+        transition: all 0.3s ease !important;
+        position: relative !important;
+      }
+
+      article pre:hover,
+      article pre.astro-code:hover {
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
+      }
+
+      article pre code,
+      article pre.astro-code code {
+        background: none !important;
+        padding: 0 !important;
+        color: var(--code-text-color) !important;
+        font-family: var(--font-sans) !important;
+        font-size: 0.85rem !important;
+        line-height: 1 !important;
+      }
+
+      /* 复制按钮样式 - */
+      .copy-button {
+        position: absolute !important;
+        top: 0.35rem !important;
+        right: 0.35rem !important;
+        background-color: var(--bg-color) !important;
+        color: var(--text-color) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 4px !important;
+        padding: 0.25rem !important;
+        font-size: 0.75rem !important;
+        font-family: var(--font-sans) !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        z-index: 10 !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 28px !important;
+        height: 28px !important;
+      }
+
+      .copy-button:hover {
+        background-color: var(--accent-color) !important;
+        color: var(--bg-color) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+      }
+
+      .copy-button.copied {
+        background-color: #28a745 !important;
+        color: white !important;
+      }
+
+      /* 复制按钮图标 */
+      .copy-button-icon {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 16px !important;
+        height: 16px !important;
+      }
+
+      .copy-button-icon svg {
+        width: 16px !important;
+        height: 16px !important;
+        fill: currentColor !important;
+      }
+
+      .copy-button .success-icon {
+        display: none !important;
+      }
+
+      .copy-button.copied .copy-icon {
+        display: none !important;
+      }
+
+      .copy-button.copied .success-icon {
+        display: block !important;
+      }
+
+      /* 行号样式 - 动态添加的行号 */
+      article pre.astro-code .line {
+        display: flex !important;
+        align-items: center !important;
+        line-height: 1 !important;
+        height: auto !important;
+        min-height: 1em !important;
+      }
+
+      article pre.astro-code .line-number {
+        display: inline-block !important;
+        width: 1.1rem !important;
+        margin-right: 0.6rem !important;
+        padding-right: 0.35rem !important;
+        text-align: right !important;
+        color: var(--text-color) !important;
+        opacity: 0.6 !important;
+        border-right: 1px solid var(--border-color) !important;
+        user-select: none !important;
+        font-size: 0.65rem !important;
+        line-height: 1 !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+      }
+
+      /* 暗色模式下的代码块样式调整 */
+      [data-theme="dark"] article pre,
+      [data-theme="dark"] article pre.astro-code {
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+      }
+
+      [data-theme="dark"] article pre:hover,
+      [data-theme="dark"] article pre.astro-code:hover {
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+      }
+
+      /* 响应式设计 */
+      @media (max-width: 600px) {
+        article pre,
+        article pre.astro-code {
+          padding: 0.4rem !important;
+          font-size: 0.7rem !important;
+        }
+
+        article pre.astro-code .line-number {
+          width: 1rem !important;
+          margin-right: 0.5rem !important;
+          font-size: 0.6rem !important;
+        }
+
+        .copy-button {
+          padding: 0.125rem 0.3rem !important;
+          font-size: 0.6rem !important;
+          top: 0.3rem !important;
+          right: 0.3rem !important;
+        }
       }
 
       /* 文章列表样式 */
@@ -466,10 +852,9 @@ const { title } = Astro.props;
       const hideLoadingIndicator = () => {
         const loadingOverlay = document.querySelector('.loading-overlay');
         if (loadingOverlay) {
-          const overlay = loadingOverlay as HTMLElement;
-          overlay.style.opacity = '0';
+          (loadingOverlay as HTMLElement).style.opacity = '0';
           setTimeout(() => {
-            overlay.style.display = 'none';
+            (loadingOverlay as HTMLElement).style.display = 'none';
           }, 300);
         }
       };
@@ -478,10 +863,9 @@ const { title } = Astro.props;
       const showLoadingIndicator = () => {
         const loadingOverlay = document.querySelector('.loading-overlay');
         if (loadingOverlay) {
-          const overlay = loadingOverlay as HTMLElement;
-          overlay.style.display = 'flex';
+          (loadingOverlay as HTMLElement).style.display = 'flex';
           setTimeout(() => {
-            overlay.style.opacity = '0.8';
+            (loadingOverlay as HTMLElement).style.opacity = '0.8';
           }, 10);
         }
       };
@@ -504,7 +888,7 @@ const { title } = Astro.props;
         showLoadingIndicator();
       });
 
-      // 拦截同域链接点击，实现平滑导航
+      // 拦截同域链接点击，实现平滑导航和页面过渡动画
       document.addEventListener('click', (e) => {
         const target = e.target as HTMLElement;
         const anchor = target?.closest?.('a') as HTMLAnchorElement | null;
@@ -517,16 +901,71 @@ const { title } = Astro.props;
           !e.metaKey &&
           !e.shiftKey
         ) {
-          e.preventDefault();
+          // 检查是否是锚点链接（页面内导航）
+          const isAnchorLink = anchor.href.includes('#') && anchor.pathname === window.location.pathname;
           
-          // 显示加载指示器
-          showLoadingIndicator();
-          
-          // 延迟导航，让加载指示器有足够时间显示
-          setTimeout(() => {
-            window.location.href = anchor.href;
-          }, 100);
+          if (isAnchorLink) {
+            // 对于锚点链接，实现平滑滚动
+            e.preventDefault();
+            
+            // 提取锚点目标
+            const hash = anchor.hash;
+            if (hash) {
+              const targetElement = document.querySelector(hash);
+              if (targetElement) {
+                // 平滑滚动到目标位置
+                targetElement.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'start',
+                  inline: 'nearest'
+                });
+                
+                // 更新URL哈希，保持浏览器历史记录
+                history.pushState(null, '', hash);
+              }
+            }
+          } else {
+            // 如果不是锚点链接，显示页面过渡动画
+            e.preventDefault();
+            
+            // 创建并显示页面过渡动画
+            const transitionOverlay = document.createElement('div');
+            transitionOverlay.className = 'page-transition-overlay';
+            transitionOverlay.style.position = 'fixed';
+            transitionOverlay.style.top = '0';
+            transitionOverlay.style.left = '0';
+            transitionOverlay.style.width = '100%';
+            transitionOverlay.style.height = '100%';
+            transitionOverlay.style.backgroundColor = 'var(--bg-color)';
+            transitionOverlay.style.zIndex = '9999';
+            transitionOverlay.style.opacity = '0';
+            transitionOverlay.style.transition = 'opacity 400ms cubic-bezier(0.4, 0, 0.2, 1)';
+            document.body.appendChild(transitionOverlay);
+            
+            // 触发动画
+            requestAnimationFrame(() => {
+              transitionOverlay.style.opacity = '1';
+            });
+            
+            // 动画完成后导航
+            setTimeout(() => {
+              window.location.href = anchor.href;
+            }, 400);
+          }
         }
+      });
+
+      // 页面加载完成后隐藏过渡动画
+      window.addEventListener('load', () => {
+        const transitionOverlay = document.querySelector('.page-transition-overlay');
+        if (transitionOverlay) {
+          const overlay = transitionOverlay as HTMLElement;
+          overlay.style.opacity = '0';
+          setTimeout(() => {
+            overlay.remove();
+          }, 400);
+        }
+        hideLoadingIndicator();
       });
 
       // 资源预加载：预加载导航链接的资源
@@ -535,8 +974,7 @@ const { title } = Astro.props;
         links.forEach(link => {
           const preloadLink = document.createElement('link');
           preloadLink.rel = 'prefetch';
-          const anchor = link as HTMLAnchorElement;
-          preloadLink.href = anchor.href;
+          preloadLink.href = (link as HTMLAnchorElement).href;
           document.head.appendChild(preloadLink);
         });
       };
@@ -552,16 +990,101 @@ const { title } = Astro.props;
       document.addEventListener('DOMContentLoaded', () => {
         const mainContent = document.querySelector('main');
         if (mainContent) {
-          mainContent.style.opacity = '0';
-          mainContent.style.transform = 'translateY(20px)';
+          const element = mainContent as HTMLElement;
+          element.style.opacity = '0';
+          element.style.transform = 'translateY(20px)';
           
           // 使用requestAnimationFrame确保动画流畅
           requestAnimationFrame(() => {
-            mainContent.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-            mainContent.style.opacity = '1';
-            mainContent.style.transform = 'translateY(0)';
+            element.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+            element.style.opacity = '1';
+            element.style.transform = 'translateY(0)';
           });
         }
+
+        // 触发 MathJax 重新渲染公式
+        if ((window as any).MathJax) {
+          (window as any).MathJax.typesetPromise().catch((err: any) => {
+            console.error('MathJax 渲染错误:', err);
+          });
+        }
+
+        // 为代码块添加复制按钮和行号
+        const codeBlocks = document.querySelectorAll('article pre.astro-code');
+        codeBlocks.forEach((codeBlock) => {
+          // 创建复制按钮 - 包含SVG图标
+          const copyButton = document.createElement('button');
+          copyButton.className = 'copy-button';
+          copyButton.setAttribute('aria-label', 'Copy code');
+          
+          // 添加图标结构
+          const iconContainer = document.createElement('div');
+          iconContainer.className = 'copy-button-icon';
+          
+          // 复制图标
+          const copyIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          copyIcon.setAttribute('viewBox', '0 -960 960 960');
+          copyIcon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+          copyIcon.setAttribute('class', 'copy-button-icon copy-icon');
+          const copyPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          copyPath.setAttribute('d', 'M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z');
+          copyIcon.appendChild(copyPath);
+          
+          // 成功图标
+          const successIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          successIcon.setAttribute('viewBox', '0 -960 960 960');
+          successIcon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+          successIcon.setAttribute('class', 'copy-button-icon success-icon');
+          const successPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          successPath.setAttribute('d', 'm389-377.13 294.7-294.7q12.58-12.67 29.52-12.67 16.93 0 29.61 12.67 12.67 12.68 12.67 29.53 0 16.86-12.28 29.14L419.07-288.41q-12.59 12.67-29.52 12.67-16.94 0-29.62-12.67L217.41-430.93q-12.67-12.68-12.79-29.45-.12-16.77 12.55-29.45 12.68-12.67 29.62-12.67 16.93 0 29.28 12.67L389-377.13Z');
+          successIcon.appendChild(successPath);
+          
+          iconContainer.appendChild(copyIcon);
+          iconContainer.appendChild(successIcon);
+          copyButton.appendChild(iconContainer);
+          
+          // 添加到代码块
+          codeBlock.appendChild(copyButton);
+          
+          // 复制功能
+          copyButton.addEventListener('click', () => {
+            // 获取代码内容
+            const codeElement = codeBlock.querySelector('code');
+            if (codeElement) {
+              // 提取代码文本，去除行号
+              let codeText = codeElement.textContent || '';
+              
+              // 复制到剪贴板
+              navigator.clipboard.writeText(codeText).then(() => {
+                // 显示复制成功反馈
+                copyButton.classList.add('copied');
+                
+                // 2秒后恢复按钮状态
+                setTimeout(() => {
+                  copyButton.classList.remove('copied');
+                }, 2000);
+              }).catch((err) => {
+                console.error('复制失败:', err);
+                // 可以添加错误处理
+              });
+            }
+          });
+          
+          // 添加行号
+          const codeElement = codeBlock.querySelector('code');
+          if (codeElement) {
+            const lines = codeElement.querySelectorAll('.line');
+            lines.forEach((line, index) => {
+              // 创建行号元素
+              const lineNumber = document.createElement('span');
+              lineNumber.className = 'line-number';
+              lineNumber.textContent = (index + 1).toString();
+              
+              // 添加到行前面
+              line.insertBefore(lineNumber, line.firstChild);
+            });
+          }
+        });
       });
     </script>
   </body>

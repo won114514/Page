@@ -10,6 +10,7 @@ export default defineConfig({
       theme: 'github-light',
       langs: [],
       wrap: true,
+      lineNumbers: true,
     },
   },
   site: config.site,
