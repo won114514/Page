@@ -18,9 +18,13 @@ const { title } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    </noscript>
     <!-- MathJax 配置，用于渲染数学公式 -->
     <script is:inline>
       // 添加MathJax配置
@@ -48,7 +52,33 @@ const { title } = Astro.props;
         };
       }
     </script>
-    <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js" defer></script>
+    <!-- 延迟加载MathJax，只在需要时加载 -->
+    <script is:inline>
+      if (typeof window !== 'undefined') {
+        // 检查页面是否包含数学公式
+        const checkForMath = () => {
+          const content = document.body.textContent || '';
+          // 检查是否包含数学公式标记
+          const hasMath = content.includes('$') || content.includes('\\(') || content.includes('\\[');
+          
+          if (hasMath) {
+            // 动态加载MathJax
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js';
+            script.defer = true;
+            script.async = true;
+            document.head.appendChild(script);
+          }
+        };
+        
+        // 页面加载完成后检查
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', checkForMath);
+        } else {
+          checkForMath();
+        }
+      }
+    </script>
     
     <style is:global>@import url('src/styles/main.css');</style>
   </head>

@@ -21,7 +21,21 @@ export default defineConfig({
         allow: ['node_modules'],
       },
     },
+    build: {
+      minify: 'terser',
+      cssMinify: true,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            mathjax: ['mathjax'],
+            search: ['fuse.js'],
+          },
+        },
+      },
+    },
   },
+  output: 'static',
+  compressHTML: true,
   site: config.site,
   title: config.title,
   description: config.description,
