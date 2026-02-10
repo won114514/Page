@@ -92,9 +92,9 @@ const { title } = Astro.props;
       const hideLoadingIndicator = () => {
         const loadingOverlay = document.querySelector('.loading-overlay');
         if (loadingOverlay) {
-          (loadingOverlay as HTMLElement).style.opacity = '0';
+          loadingOverlay.style.opacity = '0';
           setTimeout(() => {
-            (loadingOverlay as HTMLElement).style.display = 'none';
+            loadingOverlay.style.display = 'none';
           }, 300);
         }
       };
@@ -103,9 +103,9 @@ const { title } = Astro.props;
       const showLoadingIndicator = () => {
         const loadingOverlay = document.querySelector('.loading-overlay');
         if (loadingOverlay) {
-          (loadingOverlay as HTMLElement).style.display = 'flex';
+          loadingOverlay.style.display = 'flex';
           setTimeout(() => {
-            (loadingOverlay as HTMLElement).style.opacity = '0.8';
+            loadingOverlay.style.opacity = '0.8';
           }, 10);
         }
       };
@@ -130,8 +130,8 @@ const { title } = Astro.props;
 
       // 拦截同域链接点击，实现平滑导航和页面过渡动画
       document.addEventListener('click', (e) => {
-        const target = e.target as HTMLElement;
-        const anchor = target?.closest?.('a') as HTMLAnchorElement | null;
+        const target = e.target;
+        const anchor = target.closest('a');
         if (
           anchor && 
           anchor.tagName === 'A' && 
@@ -199,10 +199,9 @@ const { title } = Astro.props;
       window.addEventListener('load', () => {
         const transitionOverlay = document.querySelector('.page-transition-overlay');
         if (transitionOverlay) {
-          const overlay = transitionOverlay as HTMLElement;
-          overlay.style.opacity = '0';
+          transitionOverlay.style.opacity = '0';
           setTimeout(() => {
-            overlay.remove();
+            transitionOverlay.remove();
           }, 400);
         }
         hideLoadingIndicator();
@@ -214,7 +213,7 @@ const { title } = Astro.props;
         links.forEach(link => {
           const preloadLink = document.createElement('link');
           preloadLink.rel = 'prefetch';
-          preloadLink.href = (link as HTMLAnchorElement).href;
+          preloadLink.href = link.href;
           document.head.appendChild(preloadLink);
         });
       };
@@ -230,21 +229,20 @@ const { title } = Astro.props;
       document.addEventListener('DOMContentLoaded', () => {
         const mainContent = document.querySelector('main');
         if (mainContent) {
-          const element = mainContent as HTMLElement;
-          element.style.opacity = '0';
-          element.style.transform = 'translateY(20px)';
+          mainContent.style.opacity = '0';
+          mainContent.style.transform = 'translateY(20px)';
           
           // 使用requestAnimationFrame确保动画流畅
           requestAnimationFrame(() => {
-            element.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-            element.style.opacity = '1';
-            element.style.transform = 'translateY(0)';
+            mainContent.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+            mainContent.style.opacity = '1';
+            mainContent.style.transform = 'translateY(0)';
           });
         }
 
         // 触发 MathJax 重新渲染公式
-        if ((window as any).MathJax) {
-          (window as any).MathJax.typesetPromise().catch((err: any) => {
+        if (window.MathJax) {
+          window.MathJax.typesetPromise().catch((err) => {
             console.error('MathJax 渲染错误:', err);
           });
         }
