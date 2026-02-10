@@ -257,3 +257,42 @@ $$
 本文档全面展示了 Markdown 的各种样式元素和数学公式功能，包括标题层级、文本格式化、代码块、引用块、列表、表格、图片、超链接、分割线、脚注以及各种类型的数学公式。通过掌握这些元素的使用方法，您可以编写出结构清晰、样式丰富的 Markdown 文档，满足各种文档编写需求。
 
 Markdown 是一种简单易用的标记语言，它的设计理念是"易读易写"，既可以作为纯文本阅读，也可以通过渲染器转换为美观的 HTML 或其他格式。希望本文档对您学习和使用 Markdown 有所帮助！
+
+## 流程图
+
+### Mermaid 流程图示例
+
+```mermaid
+flowchart TD
+    A[开始] --> B[Markdown 编写]
+    B --> C{选择元素类型}
+    C -->|文本| D[格式化文本]
+    C -->|代码| E[代码块]
+    C -->|列表| F[创建列表]
+    C -->|表格| G[设计表格]
+    C -->|公式| H[数学公式]
+    C -->|流程图| I[Mermaid 图表]
+    
+    D --> J[完成文档]
+    E --> J
+    F --> J
+    G --> J
+    H --> J
+    I --> J
+    
+    J --> K[渲染输出]
+    K --> L[最终文档]
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#bbf,stroke:#333,stroke-width:2px
+    style C fill:#bfb,stroke:#333,stroke-width:2px
+    style D fill:#fbb,stroke:#333,stroke-width:2px
+    style E fill:#fbb,stroke:#333,stroke-width:2px
+    style F fill:#fbb,stroke:#333,stroke-width:2px
+    style G fill:#fbb,stroke:#333,stroke-width:2px
+    style H fill:#fbb,stroke:#333,stroke-width:2px
+    style I fill:#fbb,stroke:#333,stroke-width:2px
+    style J fill:#bbb,stroke:#333,stroke-width:2px
+    style K fill:#bbf,stroke:#333,stroke-width:2px
+    style L fill:#bfb,stroke:#333,stroke-width:2px
+```
