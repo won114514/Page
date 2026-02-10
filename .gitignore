@@ -26,3 +26,6 @@ dist-ssr
 # Local directories
 .astro
 .trae/documents
+
+# Lighthouse reports
+lighthouse-reports

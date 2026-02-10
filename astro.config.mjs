@@ -2,7 +2,6 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import { config } from './src/config';
 import remarkGfm from 'remark-gfm';
-import remarkMermaid from 'remark-mermaidjs';
 
 export default defineConfig({
   integrations: [mdx()],
@@ -14,7 +13,7 @@ export default defineConfig({
       wrap: true,
       lineNumbers: true,
     },
-    remarkPlugins: [remarkGfm, remarkMermaid],
+    remarkPlugins: [remarkGfm],
   },
   vite: {
     server: {
