@@ -16,6 +16,13 @@ export default defineConfig({
     },
     remarkPlugins: [remarkGfm, remarkMermaid],
   },
+  vite: {
+    server: {
+      fs: {
+        allow: ['node_modules'],
+      },
+    },
+  },
   site: config.site,
   title: config.title,
   description: config.description,
