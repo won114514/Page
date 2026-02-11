@@ -1,0 +1,268 @@
+---
+// 右键菜单组件
+---
+
+<div id="custom-right-click-menu" class="custom-context-menu">
+  <ul class="context-menu-list">
+    <li class="context-menu-item" data-action="refresh">
+      <img src="/icons/refresh.svg" alt="刷新" class="context-menu-icon" />
+      <span>刷新页面</span>
+    </li>
+    <li class="context-menu-item" data-action="copy">
+      <img src="/icons/copy.svg" alt="复制" class="context-menu-icon" />
+      <span>复制</span>
+    </li>
+    <li class="context-menu-item" data-action="paste">
+      <img src="/icons/paste.svg" alt="粘贴" class="context-menu-icon" />
+      <span>粘贴</span>
+    </li>
+  </ul>
+</div>
+
+<script>
+  // 获取菜单元素
+  const contextMenu = document.getElementById('custom-right-click-menu');
+  let selectedText = '';
+
+  // 监听右键点击事件
+  document.addEventListener('contextmenu', (e) => {
+    // 阻止默认右键菜单
+    e.preventDefault();
+    
+    // 获取选中的文本
+    const selection = window.getSelection();
+    selectedText = selection ? selection.toString().trim() : '';
+    
+    // 显示自定义右键菜单，使用clientX/clientY（相对于视口的位置）
+    showContextMenu(e.clientX, e.clientY);
+  });
+
+  // 点击页面其他地方关闭菜单
+  document.addEventListener('click', () => {
+    hideContextMenu();
+  });
+
+  // 显示右键菜单
+  function showContextMenu(x: number, y: number) {
+    if (!contextMenu) return;
+    
+    // 计算菜单位置，确保不会超出屏幕
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    const menuWidth = contextMenu.offsetWidth;
+    const menuHeight = contextMenu.offsetHeight;
+    
+    // 调整位置
+    let positionX = x;
+    let positionY = y;
+    
+    if (x + menuWidth > windowWidth) {
+      positionX = windowWidth - menuWidth - 10;
+    }
+    
+    if (y + menuHeight > windowHeight) {
+      positionY = windowHeight - menuHeight - 10;
+    }
+    
+    // 设置菜单位置并显示
+    contextMenu.style.left = `${positionX}px`;
+    contextMenu.style.top = `${positionY}px`;
+    contextMenu.style.opacity = '0';
+    contextMenu.style.transform = 'scale(0.9)';
+    contextMenu.style.display = 'block';
+    
+    // 添加动画效果
+    setTimeout(() => {
+      contextMenu.style.opacity = '1';
+      contextMenu.style.transform = 'scale(1)';
+    }, 10);
+  }
+
+  // 隐藏右键菜单
+  function hideContextMenu() {
+    if (!contextMenu) return;
+    
+    // 添加淡出动画
+    contextMenu.style.opacity = '0';
+    contextMenu.style.transform = 'scale(0.9)';
+    
+    setTimeout(() => {
+      contextMenu.style.display = 'none';
+    }, 200);
+  }
+
+  // 处理菜单点击事件
+  if (contextMenu) {
+    contextMenu.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (target) {
+        const menuItem = target.closest('.context-menu-item');
+        if (menuItem) {
+          const action = menuItem.getAttribute('data-action');
+          handleMenuAction(action);
+          hideContextMenu();
+        }
+      }
+    });
+  }
+
+  // 处理菜单操作
+  function handleMenuAction(action: string | null) {
+    if (!action) return;
+    
+    switch (action) {
+      case 'refresh':
+        // 刷新页面
+        window.location.reload();
+        break;
+      case 'copy':
+        // 复制选中的文本
+        if (selectedText) {
+          navigator.clipboard.writeText(selectedText).catch(err => {
+            console.error('复制失败:', err);
+          });
+        } else {
+          // 如果没有选中文本，尝试复制当前URL
+          navigator.clipboard.writeText(window.location.href).catch(err => {
+            console.error('复制失败:', err);
+          });
+        }
+        break;
+      case 'paste':
+        // 粘贴内容到当前活动元素
+        navigator.clipboard.readText().then(text => {
+          const activeElement = document.activeElement;
+          if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+            const inputElement = activeElement as HTMLInputElement | HTMLTextAreaElement;
+            inputElement.value += text;
+          } else {
+            // 如果没有活动的输入元素，可以考虑其他处理方式
+            console.log('没有可粘贴的输入元素');
+          }
+        }).catch(err => {
+          console.error('粘贴失败:', err);
+        });
+        break;
+      default:
+        break;
+    }
+  }
+
+  // 监听键盘事件，按ESC键关闭菜单
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      hideContextMenu();
+    }
+  });
+</script>
+
+<style>
+  /* 右键菜单样式（第二种样式） */
+  #custom-right-click-menu {
+    position: fixed;
+    background-color: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    padding: 6px 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    z-index: 9999;
+    display: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    min-width: 160px;
+  }
+
+  /* 菜单列表 */
+  #custom-right-click-menu .context-menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* 菜单项 */
+  #custom-right-click-menu .context-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    color: #333333;
+  }
+
+  /* 菜单项悬停效果 */
+  #custom-right-click-menu .context-menu-item:hover {
+    background-color: #e0e0e0;
+    color: #000000;
+  }
+
+  /* 菜单项选中效果 */
+  #custom-right-click-menu .context-menu-item:active {
+    background-color: #d0d0d0;
+  }
+
+  /* 深色模式适配 - 使用data-theme属性 */
+  html[data-theme="dark"] #custom-right-click-menu {
+    background-color: #2a2a2a !important;
+    border-color: #404040 !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  html[data-theme="dark"] #custom-right-click-menu .context-menu-item {
+    color: #e0e0e0 !important;
+  }
+
+  html[data-theme="dark"] #custom-right-click-menu .context-menu-item:hover {
+    background-color: #3a3a3a !important;
+    color: #ffffff !important;
+  }
+
+  html[data-theme="dark"] #custom-right-click-menu .context-menu-item:active {
+    background-color: #4a4a4a !important;
+  }
+
+  /* 菜单图标 */
+  #custom-right-click-menu .context-menu-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    flex-shrink: 0;
+    opacity: 0.7;
+    filter: brightness(0) saturate(100%) invert(20%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+  }
+
+  /* 菜单项悬停时图标效果 */
+  #custom-right-click-menu .context-menu-item:hover .context-menu-icon {
+    opacity: 1;
+  }
+
+  /* 深色模式图标效果 */
+  html[data-theme="dark"] #custom-right-click-menu .context-menu-icon {
+    filter: brightness(0) saturate(100%) invert(80%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%) !important;
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 600px) {
+    #custom-right-click-menu {
+      min-width: 140px;
+      font-size: 13px;
+    }
+
+    #custom-right-click-menu .context-menu-item {
+      padding: 7px 12px;
+    }
+
+    #custom-right-click-menu .context-menu-icon {
+      width: 14px;
+      height: 14px;
+      margin-right: 7px;
+    }
+  }
+
+  /* 确保菜单在移动设备上也能正常显示 */
+  @media (max-width: 480px) {
+    #custom-right-click-menu {
+      min-width: 120px;
+    }
+  }
+</style>
