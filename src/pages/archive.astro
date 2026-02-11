@@ -24,9 +24,6 @@ const postsPerPage = 5;
 // 只显示第一页
 const currentPage = 1;
 
-// 计算总页数
-const totalPages = Math.ceil(allPosts.length / postsPerPage);
-
 // 计算当前页显示的文章
 const startIndex = (currentPage - 1) * postsPerPage;
 const endIndex = startIndex + postsPerPage;
@@ -41,28 +38,6 @@ posts.forEach(post => {
   }
   postsByYear[year].push(post);
 });
-
-// 计算文章字数
-const countWords = (content: string) => {
-  const text = content
-    .replace(/\n/g, ' ')
-    .replace(/\*\*(.*?)\*\*/g, '$1')
-    .replace(/\*(.*?)\*/g, '$1')
-    .replace(/`(.*?)`/g, '$1')
-    .replace(/#{1,6}\s/g, '')
-    .replace(/!\[.*?\]\(.*?\)/g, '')
-    .replace(/\[.*?\]\(.*?\)/g, '$1')
-    .trim();
-  return text.length > 0 ? text.length : 0;
-};
-
-// 生成页码链接
-const getPageUrl = (pageNumber: number) => {
-  if (pageNumber === 1) {
-    return '/archive';
-  }
-  return `/archive/${pageNumber}`;
-};
 ---
 
 <BaseLayout title={`归档 - ${config.title}`}>

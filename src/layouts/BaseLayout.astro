@@ -90,7 +90,7 @@ const { title } = Astro.props;
     <script>
       // 隐藏加载指示器
       const hideLoadingIndicator = () => {
-        const loadingOverlay = document.querySelector('.loading-overlay');
+        const loadingOverlay = document.querySelector('.loading-overlay') as HTMLElement;
         if (loadingOverlay) {
           loadingOverlay.style.opacity = '0';
           setTimeout(() => {
@@ -101,7 +101,7 @@ const { title } = Astro.props;
 
       // 显示加载指示器
       const showLoadingIndicator = () => {
-        const loadingOverlay = document.querySelector('.loading-overlay');
+        const loadingOverlay = document.querySelector('.loading-overlay') as HTMLElement;
         if (loadingOverlay) {
           loadingOverlay.style.display = 'flex';
           setTimeout(() => {
@@ -130,74 +130,76 @@ const { title } = Astro.props;
 
       // 拦截同域链接点击，实现平滑导航和页面过渡动画
       document.addEventListener('click', (e) => {
-        const target = e.target;
-        const anchor = target.closest('a');
-        if (
-          anchor && 
-          anchor.tagName === 'A' && 
-          anchor.origin === window.location.origin &&
-          !anchor.getAttribute('target') &&
-          !e.ctrlKey &&
-          !e.metaKey &&
-          !e.shiftKey
-        ) {
-          // 检查是否是锚点链接（页面内导航）
-          const isAnchorLink = anchor.href.includes('#') && anchor.pathname === window.location.pathname;
-          
-          if (isAnchorLink) {
-            // 对于锚点链接，实现平滑滚动
-            e.preventDefault();
+        const target = e.target as HTMLElement;
+        if (target) {
+          const anchor = target.closest('a');
+          if (
+            anchor && 
+            anchor.tagName === 'A' && 
+            anchor.origin === window.location.origin &&
+            !anchor.getAttribute('target') &&
+            !e.ctrlKey &&
+            !e.metaKey &&
+            !e.shiftKey
+          ) {
+            // 检查是否是锚点链接（页面内导航）
+            const isAnchorLink = anchor.href.includes('#') && anchor.pathname === window.location.pathname;
             
-            // 提取锚点目标
-            const hash = anchor.hash;
-            if (hash) {
-              const targetElement = document.querySelector(hash);
-              if (targetElement) {
-                // 平滑滚动到目标位置
-                targetElement.scrollIntoView({
-                  behavior: 'smooth',
-                  block: 'start',
-                  inline: 'nearest'
-                });
-                
-                // 更新URL哈希，保持浏览器历史记录
-                history.pushState(null, '', hash);
+            if (isAnchorLink) {
+              // 对于锚点链接，实现平滑滚动
+              e.preventDefault();
+              
+              // 提取锚点目标
+              const hash = anchor.hash;
+              if (hash) {
+                const targetElement = document.querySelector(hash);
+                if (targetElement) {
+                  // 平滑滚动到目标位置
+                  targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                    inline: 'nearest'
+                  });
+                  
+                  // 更新URL哈希，保持浏览器历史记录
+                  history.pushState(null, '', hash);
+                }
               }
+            } else {
+              // 如果不是锚点链接，显示页面过渡动画
+              e.preventDefault();
+              
+              // 创建并显示页面过渡动画
+              const transitionOverlay = document.createElement('div');
+              transitionOverlay.className = 'page-transition-overlay';
+              transitionOverlay.style.position = 'fixed';
+              transitionOverlay.style.top = '0';
+              transitionOverlay.style.left = '0';
+              transitionOverlay.style.width = '100%';
+              transitionOverlay.style.height = '100%';
+              transitionOverlay.style.backgroundColor = 'var(--bg-color)';
+              transitionOverlay.style.zIndex = '9999';
+              transitionOverlay.style.opacity = '0';
+              transitionOverlay.style.transition = 'opacity 400ms cubic-bezier(0.4, 0, 0.2, 1)';
+              document.body.appendChild(transitionOverlay);
+              
+              // 触发动画
+              requestAnimationFrame(() => {
+                transitionOverlay.style.opacity = '1';
+              });
+              
+              // 动画完成后导航
+              setTimeout(() => {
+                window.location.href = anchor.href;
+              }, 400);
             }
-          } else {
-            // 如果不是锚点链接，显示页面过渡动画
-            e.preventDefault();
-            
-            // 创建并显示页面过渡动画
-            const transitionOverlay = document.createElement('div');
-            transitionOverlay.className = 'page-transition-overlay';
-            transitionOverlay.style.position = 'fixed';
-            transitionOverlay.style.top = '0';
-            transitionOverlay.style.left = '0';
-            transitionOverlay.style.width = '100%';
-            transitionOverlay.style.height = '100%';
-            transitionOverlay.style.backgroundColor = 'var(--bg-color)';
-            transitionOverlay.style.zIndex = '9999';
-            transitionOverlay.style.opacity = '0';
-            transitionOverlay.style.transition = 'opacity 400ms cubic-bezier(0.4, 0, 0.2, 1)';
-            document.body.appendChild(transitionOverlay);
-            
-            // 触发动画
-            requestAnimationFrame(() => {
-              transitionOverlay.style.opacity = '1';
-            });
-            
-            // 动画完成后导航
-            setTimeout(() => {
-              window.location.href = anchor.href;
-            }, 400);
           }
         }
       });
 
       // 页面加载完成后隐藏过渡动画
       window.addEventListener('load', () => {
-        const transitionOverlay = document.querySelector('.page-transition-overlay');
+        const transitionOverlay = document.querySelector('.page-transition-overlay') as HTMLElement;
         if (transitionOverlay) {
           transitionOverlay.style.opacity = '0';
           setTimeout(() => {
@@ -210,10 +212,10 @@ const { title } = Astro.props;
       // 资源预加载：预加载导航链接的资源
       const preloadLinks = () => {
         const links = document.querySelectorAll('a.nav-link');
-        links.forEach(link => {
+        links.forEach((link) => {
           const preloadLink = document.createElement('link');
           preloadLink.rel = 'prefetch';
-          preloadLink.href = link.href;
+          preloadLink.href = (link as HTMLAnchorElement).href;
           document.head.appendChild(preloadLink);
         });
       };
@@ -241,8 +243,8 @@ const { title } = Astro.props;
         }
 
         // 触发 MathJax 重新渲染公式
-        if (window.MathJax) {
-          window.MathJax.typesetPromise().catch((err) => {
+        if ((window as any).MathJax) {
+          (window as any).MathJax.typesetPromise().catch((err: any) => {
             console.error('MathJax 渲染错误:', err);
           });
         }
