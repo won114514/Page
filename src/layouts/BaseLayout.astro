@@ -22,34 +22,7 @@ const { title } = Astro.props;
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- MathJax 配置，用于渲染数学公式 -->
-    <script is:inline>
-      // 添加MathJax配置
-      if (typeof window !== 'undefined') {
-        // 直接设置MathJax配置
-        window.MathJax = {
-          tex: {
-            inlineMath: [['$', '$'], ['\\(', '\\)']],
-            displayMath: [['$$', '$$'], ['\\[', '\\]']],
-            processEscapes: true,
-            processEnvironments: true
-          },
-          options: {
-            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
-            processHtmlClass: 'mathjax-process'
-          },
-          startup: {
-            ready: function() {
-              // 调用MathJax的标准初始化
-              MathJax.startup.defaultReady();
-              // 初始渲染后再渲染一次，确保所有公式都被处理
-              MathJax.typesetPromise();
-            }
-          }
-        };
-      }
-    </script>
-    <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js" defer></script>
+    <!-- MathJax 将在需要时懒加载 -->
     
     <style is:global>@import url('src/styles/main.css');</style>
   </head>
@@ -245,11 +218,39 @@ const { title } = Astro.props;
           });
         }
 
-        // 触发 MathJax 重新渲染公式
-        if ((window as any).MathJax) {
-          (window as any).MathJax.typesetPromise().catch((err: any) => {
-            console.error('MathJax 渲染错误:', err);
-          });
+        // 检查页面是否包含数学公式，并懒加载 MathJax
+        const hasMathFormulas = document.body.textContent?.includes('$') || document.body.textContent?.includes('\\[');
+        
+        if (hasMathFormulas) {
+          // 设置 MathJax 配置
+          if (typeof window !== 'undefined') {
+            (window as any).MathJax = {
+              tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true
+              },
+              options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+                processHtmlClass: 'mathjax-process'
+              },
+              startup: {
+                ready: function() {
+                  // 调用 MathJax 的标准初始化
+                  (window as any).MathJax.startup.defaultReady();
+                  // 初始渲染后再渲染一次，确保所有公式都被处理
+                  (window as any).MathJax.typesetPromise();
+                }
+              }
+            };
+          }
+          
+          // 动态加载 MathJax 脚本
+          const mathJaxScript = document.createElement('script');
+          mathJaxScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js';
+          mathJaxScript.defer = true;
+          document.head.appendChild(mathJaxScript);
         }
 
         // 为代码块添加复制按钮、语言标签和行号
