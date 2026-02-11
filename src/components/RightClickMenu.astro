@@ -38,9 +38,20 @@
   </ul>
 </div>
 
+<!-- 操作反馈弹窗 -->
+<div id="action-feedback" class="action-feedback">
+  <div class="feedback-content">
+    <svg class="feedback-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span class="feedback-message"></span>
+  </div>
+</div>
+
 <script>
   // 获取菜单元素
   const contextMenu = document.getElementById('custom-right-click-menu');
+  const feedbackElement = document.getElementById('action-feedback');
   let selectedText = '';
   let justSelectedText = false;
   let rightClickTarget: Element | null = null;
@@ -64,6 +75,11 @@
 
   // 监听文本选择事件，当用户选中文本时自动显示菜单
   document.addEventListener('mouseup', (e) => {
+    // 检查点击目标是否在菜单内，如果是则不显示菜单
+    if (contextMenu && contextMenu.contains(e.target as Node)) {
+      return;
+    }
+    
     const selection = window.getSelection();
     selectedText = selection ? selection.toString().trim() : '';
     
@@ -200,14 +216,18 @@
       case 'copy':
         // 复制选中的文本
         if (selectedText) {
-          navigator.clipboard.writeText(selectedText).catch(err => {
+          navigator.clipboard.writeText(selectedText).then(() => {
+            showFeedback('复制成功');
+          }).catch(err => {
             console.error('复制失败:', err);
           });
         }
         break;
       case 'copy-url':
         // 复制当前URL
-        navigator.clipboard.writeText(window.location.href).catch(err => {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+          showFeedback('链接已复制');
+        }).catch(err => {
           console.error('复制链接失败:', err);
         });
         break;
@@ -239,6 +259,7 @@
             inputElement.value += text;
             // 聚焦到输入元素，确保用户可以继续编辑
             inputElement.focus();
+            showFeedback('粘贴成功');
           } else {
             // 如果没有可粘贴的输入元素，可以考虑其他处理方式
             console.log('没有可粘贴的输入元素');
@@ -290,11 +311,32 @@
   function fallbackShare(text: string) {
     const shareText = `${text}\n\n来自: ${window.location.href}`;
     navigator.clipboard.writeText(shareText).then(() => {
-      // 可以添加一个提示，告知用户已复制到剪贴板
-      console.log('已复制到剪贴板');
+      showFeedback('已复制到剪贴板');
     }).catch(err => {
       console.error('复制失败:', err);
     });
+  }
+
+  // 显示操作反馈弹窗
+  function showFeedback(message: string) {
+    if (!feedbackElement) return;
+    
+    // 设置反馈信息
+    const messageElement = feedbackElement.querySelector('.feedback-message');
+    if (messageElement) {
+      messageElement.textContent = message;
+    }
+    
+    // 重置动画和显示状态
+    feedbackElement.style.display = 'flex';
+    feedbackElement.style.animation = 'none';
+    feedbackElement.offsetHeight; // 触发重排
+    feedbackElement.style.animation = 'feedbackFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards, feedbackFadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) 2.7s forwards';
+    
+    // 3秒后隐藏弹窗
+    setTimeout(() => {
+      feedbackElement.style.display = 'none';
+    }, 3000);
   }
 
   // 监听键盘事件，按ESC键关闭菜单
@@ -490,6 +532,77 @@
 
     #custom-right-click-menu.showing {
       animation: none;
+    }
+  }
+
+  /* 操作反馈弹窗样式 */
+  .action-feedback {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    padding: 16px 20px;
+    display: none;
+    align-items: center;
+    z-index: 10000;
+    backdrop-filter: blur(8px);
+    background-color: rgba(255, 255, 255, 0.95);
+    animation: feedbackFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards, feedbackFadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) 2.7s forwards;
+  }
+
+  /* 深色模式适配 */
+  html[data-theme="dark"] .action-feedback {
+    background-color: rgba(42, 42, 42, 0.95) !important;
+    border-color: #404040 !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  .feedback-content {
+    display: flex;
+    align-items: center;
+  }
+
+  .feedback-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    color: #4CAF50;
+  }
+
+  .feedback-message {
+    font-size: 14px;
+    color: #333333;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  html[data-theme="dark"] .feedback-message {
+    color: #e0e0e0 !important;
+  }
+
+  /* 反馈弹窗动画 */
+  @keyframes feedbackFadeIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+
+  @keyframes feedbackFadeOut {
+    from {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.9);
     }
   }
 </style>
