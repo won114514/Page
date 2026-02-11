@@ -80,6 +80,10 @@
       return;
     }
     
+    // 检查点击目标是否是输入元素，如果是则使用输入元素的位置
+    const target = e.target as Element;
+    const isInputElement = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+    
     const selection = window.getSelection();
     selectedText = selection ? selection.toString().trim() : '';
     
@@ -98,9 +102,32 @@
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
       
-      // 在选中文本的右上角显示菜单
-      const menuX = rect.right;
-      const menuY = rect.top;
+      // 计算菜单位置，确保在屏幕内显示
+      let menuX = rect.right + 5;
+      let menuY = rect.top + 5;
+      
+      // 确保菜单不会显示在屏幕顶部边缘
+      if (menuY < 20) {
+        menuY = rect.bottom + 5;
+      }
+      
+      // 确保菜单不会显示在屏幕左侧边缘
+      if (menuX < 20) {
+        menuX = rect.left + 5;
+      }
+      
+      // 对于搜索框等输入元素，特殊处理菜单位置
+      if (isInputElement) {
+        const inputRect = target.getBoundingClientRect();
+        // 确保菜单显示在输入元素的右侧或下方
+        if (inputRect.right + 10 + 180 <= window.innerWidth) {
+          menuX = inputRect.right + 10;
+          menuY = inputRect.top;
+        } else {
+          menuX = inputRect.left;
+          menuY = inputRect.bottom + 5;
+        }
+      }
       
       showContextMenu(menuX, menuY);
     }
