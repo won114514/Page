@@ -101,6 +101,9 @@ import "../styles/right-click-menu.css";
       
       // 监听触摸开始事件
       document.addEventListener('touchstart', (e) => {
+        // 当开始触摸时，隐藏菜单，避免干扰文本选择
+        this.hideContextMenu();
+        
         this.touchStartTime = Date.now();
         const touch = e.touches[0];
         this.touchStartX = touch.clientX;
@@ -110,6 +113,9 @@ import "../styles/right-click-menu.css";
       
       // 监听触摸移动事件
       document.addEventListener('touchmove', (e) => {
+        // 当触摸移动时，隐藏菜单，避免干扰文本选择
+        this.hideContextMenu();
+        
         this.lastTouchEvent = e;
         // 检测是否正在进行文本选择
         const selection = window.getSelection();
@@ -182,7 +188,7 @@ import "../styles/right-click-menu.css";
       
       // 触摸开始事件（用于滑动检测）
       this.contextMenu.addEventListener('touchstart', (e) => {
-        e.preventDefault(); // 阻止默认行为，防止页面滚动
+        e.preventDefault(); // 阻止默认行为，防止页面滚动和文本选择
         const touch = e.touches[0];
         this.touchStartXForSwipe = touch.clientX;
         this.touchStartYForSwipe = touch.clientY;
@@ -190,23 +196,25 @@ import "../styles/right-click-menu.css";
       
       // 触摸移动事件（用于滑动检测）
       this.contextMenu.addEventListener('touchmove', (e) => {
-        e.preventDefault(); // 阻止默认行为，防止页面滚动
+        e.preventDefault(); // 阻止默认行为，防止页面滚动和文本选择
         this.handleMenuTouchMove(e);
       }, { passive: false });
       
       // 触摸反馈事件
       this.contextMenu.addEventListener('touchstart', (e) => {
-        e.preventDefault(); // 阻止默认行为，防止页面滚动
+        e.preventDefault(); // 阻止默认行为，防止页面滚动和文本选择
         this.handleMenuItemTouchStart(e);
       }, { passive: false });
       
       this.contextMenu.addEventListener('touchend', (e) => {
+        e.preventDefault(); // 阻止默认行为，防止页面滚动和文本选择
         this.handleMenuItemTouchEnd(e);
-      }, { passive: true });
+      }, { passive: false });
       
       this.contextMenu.addEventListener('touchcancel', (e) => {
+        e.preventDefault(); // 阻止默认行为，防止页面滚动和文本选择
         this.handleMenuItemTouchCancel(e);
-      }, { passive: true });
+      }, { passive: false });
       
       // 菜单点击事件
       this.contextMenu.addEventListener('click', (e) => {
@@ -220,14 +228,34 @@ import "../styles/right-click-menu.css";
       const touchEndX = touch.clientX;
       const touchEndY = touch.clientY;
       
-      // 检查是否有选中的文本
-      const selection = window.getSelection();
-      this.selectedText = selection ? selection.toString().trim() : '';
-      
-      // 如果有选中文本，显示菜单
-      if (this.selectedText && this.isSelectingText) {
-        this.rightClickTarget = touch.target as Element;
-        this.showOrSwitchMenu(touchEndX, touchEndY, e);
+      // 检查触摸点是否在 main 内容区域内
+      const mainElement = document.querySelector('main');
+      if (mainElement) {
+        const mainRect = mainElement.getBoundingClientRect();
+        // 只有当触摸点在 main 区域内时，才继续处理
+        if (touchEndX >= mainRect.left && touchEndX <= mainRect.right &&
+            touchEndY >= mainRect.top && touchEndY <= mainRect.bottom) {
+          // 检查是否有选中的文本
+          const selection = window.getSelection();
+          this.selectedText = selection ? selection.toString().trim() : '';
+          
+          // 如果有选中文本，显示菜单
+          if (this.selectedText && this.isSelectingText) {
+            this.rightClickTarget = touch.target as Element;
+            this.showOrSwitchMenu(touchEndX, touchEndY, e);
+          }
+        }
+      } else {
+        // 如果没有 main 元素，就默认处理
+        // 检查是否有选中的文本
+        const selection = window.getSelection();
+        this.selectedText = selection ? selection.toString().trim() : '';
+        
+        // 如果有选中文本，显示菜单
+        if (this.selectedText && this.isSelectingText) {
+          this.rightClickTarget = touch.target as Element;
+          this.showOrSwitchMenu(touchEndX, touchEndY, e);
+        }
       }
     }
     
