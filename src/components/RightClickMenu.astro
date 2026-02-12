@@ -691,7 +691,24 @@ import "../styles/right-click-menu.css";
         // 粘贴到目标输入元素
         if (targetElement && (targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA')) {
           const inputElement = targetElement as HTMLInputElement | HTMLTextAreaElement;
-          inputElement.value += text;
+          
+          // 检查是否有选中文本
+          const selectionStart = inputElement.selectionStart || 0;
+          const selectionEnd = inputElement.selectionEnd || 0;
+          
+          if (selectionStart !== selectionEnd) {
+            // 有选中文本，替换选中的内容
+            const value = inputElement.value;
+            inputElement.value = value.substring(0, selectionStart) + text + value.substring(selectionEnd);
+            // 调整光标位置到粘贴内容的末尾
+            inputElement.selectionStart = inputElement.selectionEnd = selectionStart + text.length;
+          } else {
+            // 没有选中文本，追加到末尾
+            inputElement.value += text;
+            // 调整光标位置到粘贴内容的末尾
+            inputElement.selectionStart = inputElement.selectionEnd = inputElement.value.length;
+          }
+          
           inputElement.focus();
           this.showFeedback('粘贴成功');
         }
