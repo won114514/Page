@@ -101,17 +101,21 @@ import "../styles/right-click-menu.css";
       
       // 监听鼠标按下事件，开始新的选择操作时隐藏菜单
       document.addEventListener('mousedown', (e) => {
-        // 只有当点击的不是右键时，才隐藏菜单
+        // 只有当点击的不是右键，并且点击的不是菜单时，才隐藏菜单
         // 右键点击时会触发 contextmenu 事件，不需要在这里隐藏菜单
-        if (e.button !== 2) {
+        // 点击菜单时会触发菜单的点击事件，不需要在这里隐藏菜单
+        if (e.button !== 2 && (!this.contextMenu || !this.contextMenu.contains(e.target as Node))) {
           this.hideContextMenu();
         }
       });
       
       // 监听触摸开始事件
       document.addEventListener('touchstart', (e) => {
-        // 开始新的触摸操作时，隐藏菜单
-        this.hideContextMenu();
+        // 只有当点击的不是菜单时，才隐藏菜单
+        // 点击菜单时会触发菜单的触摸事件，不需要在这里隐藏菜单
+        if (!this.contextMenu || !this.contextMenu.contains(e.target as Node)) {
+          this.hideContextMenu();
+        }
         this.touchStartTime = Date.now();
         const touch = e.touches[0];
         this.touchStartX = touch.clientX;
@@ -194,6 +198,7 @@ import "../styles/right-click-menu.css";
       // 触摸开始事件（用于滑动检测）
       this.contextMenu.addEventListener('touchstart', (e) => {
         e.preventDefault(); // 阻止默认行为，防止页面滚动和文本选择
+        e.stopPropagation(); // 阻止事件冒泡，防止触发页面的点击事件导致菜单消失
         const touch = e.touches[0];
         this.touchStartXForSwipe = touch.clientX;
         this.touchStartYForSwipe = touch.clientY;
@@ -202,22 +207,26 @@ import "../styles/right-click-menu.css";
       // 触摸移动事件（用于滑动检测）
       this.contextMenu.addEventListener('touchmove', (e) => {
         e.preventDefault(); // 阻止默认行为，防止页面滚动和文本选择
+        e.stopPropagation(); // 阻止事件冒泡，防止触发页面的点击事件导致菜单消失
         this.handleMenuTouchMove(e);
       }, { passive: false });
       
       // 触摸反馈事件
       this.contextMenu.addEventListener('touchstart', (e) => {
         e.preventDefault(); // 阻止默认行为，防止页面滚动和文本选择
+        e.stopPropagation(); // 阻止事件冒泡，防止触发页面的点击事件导致菜单消失
         this.handleMenuItemTouchStart(e);
       }, { passive: false });
       
       this.contextMenu.addEventListener('touchend', (e) => {
         e.preventDefault(); // 阻止默认行为，防止页面滚动和文本选择
+        e.stopPropagation(); // 阻止事件冒泡，防止触发页面的点击事件导致菜单消失
         this.handleMenuItemTouchEnd(e);
       }, { passive: false });
       
       this.contextMenu.addEventListener('touchcancel', (e) => {
         e.preventDefault(); // 阻止默认行为，防止页面滚动和文本选择
+        e.stopPropagation(); // 阻止事件冒泡，防止触发页面的点击事件导致菜单消失
         this.handleMenuItemTouchCancel(e);
       }, { passive: false });
       
@@ -598,6 +607,8 @@ import "../styles/right-click-menu.css";
     
     // 处理菜单点击事件
     private handleMenuClick(e: MouseEvent) {
+      e.stopPropagation(); // 阻止事件冒泡，防止触发页面的点击事件导致菜单消失
+      
       const target = e.target as HTMLElement;
       if (!target) return;
       
