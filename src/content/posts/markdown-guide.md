@@ -1,5 +1,5 @@
 ---
-title: Markdown 完全指南
+title: Markdown 指南
 date: 2026-02-09
 excerpt: 本文档旨在全面展示 Markdown 的各种样式元素和数学公式功能，为您提供一个详细的参考指南。
 draft: false
