@@ -99,11 +99,19 @@ import "../styles/right-click-menu.css";
         this.lastMouseEvent = e;
       });
       
+      // 监听鼠标按下事件，开始新的选择操作时隐藏菜单
+      document.addEventListener('mousedown', (e) => {
+        // 只有当点击的不是右键时，才隐藏菜单
+        // 右键点击时会触发 contextmenu 事件，不需要在这里隐藏菜单
+        if (e.button !== 2) {
+          this.hideContextMenu();
+        }
+      });
+      
       // 监听触摸开始事件
       document.addEventListener('touchstart', (e) => {
-        // 当开始触摸时，隐藏菜单，避免干扰文本选择
+        // 开始新的触摸操作时，隐藏菜单
         this.hideContextMenu();
-        
         this.touchStartTime = Date.now();
         const touch = e.touches[0];
         this.touchStartX = touch.clientX;
@@ -113,9 +121,6 @@ import "../styles/right-click-menu.css";
       
       // 监听触摸移动事件
       document.addEventListener('touchmove', (e) => {
-        // 当触摸移动时，隐藏菜单，避免干扰文本选择
-        this.hideContextMenu();
-        
         this.lastTouchEvent = e;
         // 检测是否正在进行文本选择
         const selection = window.getSelection();
