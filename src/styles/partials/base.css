@@ -37,6 +37,65 @@ a:hover {
   background-size: 100% var(--underline-thickness);
 }
 
+/* 链接视觉指示图标 - 仅在文章内容、RSS页面和通知页面中显示 */
+article a,
+.rss-page a,
+.notifications-page a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 为文章内容、RSS页面和通知页面中的外部链接添加图标 */
+article a:not([href^="#"]):not([href^="mailto:"]):not([href^="tel:"]),
+.rss-page a:not([href^="#"]):not([href^="mailto:"]):not([href^="tel:"]),
+.notifications-page a:not([href^="#"]):not([href^="mailto:"]):not([href^="tel:"]) {
+  position: relative;
+  padding-right: 18px;
+}
+
+/* 使用伪元素添加链接图标 */
+article a:not([href^="#"]):not([href^="mailto:"]):not([href^="tel:"])::after,
+.rss-page a:not([href^="#"]):not([href^="mailto:"]):not([href^="tel:"])::after,
+.notifications-page a:not([href^="#"]):not([href^="mailto:"]):not([href^="tel:"])::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.6;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* 链接悬停时图标效果 */
+article a:not([href^="#"]):not([href^="mailto:"]):not([href^="tel:"]):hover::after,
+.rss-page a:not([href^="#"]):not([href^="mailto:"]):not([href^="tel:"]):hover::after,
+.notifications-page a:not([href^="#"]):not([href^="mailto:"]):not([href^="tel:"]):hover::after {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.2);
+}
+
+/* 暗色模式链接图标 */
+[data-theme="dark"] article a:not([href^="#"]):not([href^="mailto:"]):not([href^="tel:"])::after,
+[data-theme="dark"] .rss-page a:not([href^="#"]):not([href^="mailto:"]):not([href^="tel:"])::after,
+[data-theme="dark"] .notifications-page a:not([href^="#"]):not([href^="mailto:"]):not([href^="tel:"])::after {
+  opacity: 0.8;
+  filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
+}
+
+[data-theme="dark"] article a:not([href^="#"]):not([href^="mailto:"]):not([href^="tel:"]):hover::after,
+[data-theme="dark"] .rss-page a:not([href^="#"]):not([href^="mailto:"]):not([href^="tel:"]):hover::after,
+[data-theme="dark"] .notifications-page a:not([href^="#"]):not([href^="mailto:"]):not([href^="tel:"]):hover::after {
+  opacity: 1;
+  filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
+}
+
 /* 高亮文本 */
 mark {
   background-color: rgba(255, 215, 0, 0.25);

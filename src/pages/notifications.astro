@@ -24,29 +24,31 @@ const renderedNotifications = await Promise.all(
 ---
 
 <BaseLayout title={`通知 - ${config.title}`}>
-  <h1>网站通知</h1>
-  
-  <p class="notifications-intro">这里是网站的最新通知和公告：</p>
-  
-  {renderedNotifications.length > 0 ? (
-    <div class="notifications-list">
-      {renderedNotifications.map((notification) => (
-        <div class={`notification-item ${notification.data.important ? 'notification-important' : ''}`}>
-          <div class="notification-header">
-            <h2 class="notification-title">{notification.data.title}</h2>
-            <span class="notification-date">{new Date(notification.data.date).toLocaleDateString('zh-CN')}</span>
+  <div class="notifications-page">
+    <h1>网站通知</h1>
+    
+    <p class="notifications-intro">这里是网站的最新通知和公告：</p>
+    
+    {renderedNotifications.length > 0 ? (
+      <div class="notifications-list">
+        {renderedNotifications.map((notification) => (
+          <div class={`notification-item ${notification.data.important ? 'notification-important' : ''}`}>
+            <div class="notification-header">
+              <h2 class="notification-title">{notification.data.title}</h2>
+              <span class="notification-date">{new Date(notification.data.date).toLocaleDateString('zh-CN')}</span>
+            </div>
+            <div class="notification-content">
+              <notification.Content />
+            </div>
           </div>
-          <div class="notification-content">
-            <notification.Content />
-          </div>
-        </div>
-      ))}
-    </div>
-  ) : (
-    <div class="no-notifications">
-      <p>暂无通知</p>
-    </div>
-  )}
+        ))}
+      </div>
+    ) : (
+      <div class="no-notifications">
+        <p>暂无通知</p>
+      </div>
+    )}
+  </div>
 
   <style scoped>
     .notifications-intro {
