@@ -1,0 +1,70 @@
+/* 重置样式 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* 基础样式 */
+body {
+  font-family: var(--font-serif);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.75;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-size: 16px;
+}
+
+/* 链接样式 */
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+  position: relative;
+  line-height: 1.4;
+  /* 关键：使用background-image实现可动画的下划线 */
+  background-image: linear-gradient(to right, var(--underline-color), var(--underline-color));
+  background-size: 0% var(--underline-thickness);
+  background-position: 0% 100%;
+  background-repeat: no-repeat;
+  background-position-y: calc(100% + var(--underline-offset));
+  /* 配置过渡效果 */
+  transition: background-size var(--underline-animation-duration) ease-in-out, color 0.3s ease;
+}
+
+a:hover {
+  text-decoration: none;
+  /* 悬停时展开下划线，从左到右 */
+  background-size: 100% var(--underline-thickness);
+}
+
+/* 高亮文本 */
+mark {
+  background-color: rgba(255, 215, 0, 0.25);
+  color: var(--text-color);
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  /* 确保高亮不会遮挡动态下划线 */
+  display: inline;
+  position: relative;
+  z-index: 1;
+}
+
+[data-theme="dark"] mark {
+  background-color: rgba(255, 215, 0, 0.2);
+}
+
+/* 分割线样式优化 */
+hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--accent-color), transparent);
+  margin: 1.5rem 0;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+hr:hover {
+  opacity: 0.7;
+}

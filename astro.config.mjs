@@ -23,7 +23,7 @@ export default defineConfig({
   vite: {
     server: {
       fs: {
-        allow: ['node_modules'],
+        allow: ['node_modules', '.'],
       },
     },
     build: {

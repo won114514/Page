@@ -1,5 +1,6 @@
 ---
 // 右键菜单组件
+import "../styles/right-click-menu.css";
 ---
 
 <div id="custom-right-click-menu" class="custom-context-menu">
@@ -77,8 +78,16 @@
     const selection = window.getSelection();
     selectedText = selection ? selection.toString().trim() : '';
     
-    // 显示自定义右键菜单，使用clientX/clientY（相对于视口的位置）
-    showContextMenu(e.clientX, e.clientY, e);
+    // 检查菜单是否已经显示
+    const menuVisible = contextMenu && contextMenu.style.display === 'block';
+    
+    // 如果菜单已经显示，使用切换动画
+    if (menuVisible) {
+      switchContextMenu(e.clientX, e.clientY, e);
+    } else {
+      // 否则直接显示菜单
+      showContextMenu(e.clientX, e.clientY, e);
+    }
   });
 
   // 监听文本选择事件，当用户选中文本时自动显示菜单
@@ -106,8 +115,16 @@
         justSelectedText = false;
       }, 100);
       
-      // 使用鼠标点击位置作为菜单锚点
-      showContextMenu(e.clientX, e.clientY, e);
+      // 检查菜单是否已经显示
+      const menuVisible = contextMenu && contextMenu.style.display === 'block';
+      
+      // 如果菜单已经显示，使用切换动画
+      if (menuVisible) {
+        switchContextMenu(e.clientX, e.clientY, e);
+      } else {
+        // 否则直接显示菜单
+        showContextMenu(e.clientX, e.clientY, e);
+      }
     }
   });
 
@@ -157,6 +174,7 @@
     contextMenu.style.display = 'block';
     contextMenu.style.opacity = '0';
     contextMenu.style.transform = 'scale(0.9)';
+    contextMenu.style.transition = 'none'; // 暂时禁用过渡，以便获取尺寸
     
     const menuWidth = contextMenu.offsetWidth;
     const menuHeight = contextMenu.offsetHeight;
@@ -177,22 +195,58 @@
       }
     }
     
+    // 当有选中文本时，确保菜单定位在选中内容的附近
+    if (hasSelection && event) {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        
+        // 检查点击位置是否在选区内
+        const clickInSelection = 
+          event.clientX >= rect.left && 
+          event.clientX <= rect.right && 
+          event.clientY >= rect.top && 
+          event.clientY <= rect.bottom;
+        
+        // 如果点击位置在选区内，调整菜单位置以避免遮挡选中内容
+        if (clickInSelection) {
+          // 尝试将菜单定位在选区的右侧或下方
+          if (rect.right + menuWidth + 10 <= windowWidth) {
+            positionX = rect.right + 10;
+            positionY = rect.top;
+          } else if (rect.bottom + menuHeight + 10 <= windowHeight) {
+            positionX = rect.left;
+            positionY = rect.bottom + 10;
+          } else if (rect.left - menuWidth - 10 >= 0) {
+            positionX = rect.left - menuWidth - 10;
+            positionY = rect.top;
+          } else if (rect.top - menuHeight - 10 >= 0) {
+            positionX = rect.left;
+            positionY = rect.top - menuHeight - 10;
+          }
+        }
+      }
+    }
+    
     // 避免菜单超出视口右侧
     if (positionX + menuWidth > windowWidth) {
       positionX = windowWidth - menuWidth - 10;
-      // 确保不超出左侧边界
-      if (positionX < 10) {
-        positionX = 10;
-      }
+    }
+    
+    // 避免菜单超出视口左侧
+    if (positionX < 10) {
+      positionX = 10;
     }
     
     // 避免菜单超出视口底部
     if (positionY + menuHeight > windowHeight) {
       positionY = windowHeight - menuHeight - 10;
-      // 确保不超出顶部边界
-      if (positionY < 10) {
-        positionY = 10;
-      }
+    }
+    
+    // 避免菜单超出视口顶部
+    if (positionY < 10) {
+      positionY = 10;
     }
     
     // 确保菜单位置在视口内
@@ -204,10 +258,16 @@
     contextMenu.style.top = `${positionY}px`;
     
     // 添加动画效果
-    setTimeout(() => {
+    requestAnimationFrame(() => {
+      contextMenu.style.transition = 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
       contextMenu.style.opacity = '1';
       contextMenu.style.transform = 'scale(1)';
-    }, 10);
+      
+      // 动画完成后重置过渡属性
+      setTimeout(() => {
+        contextMenu.style.transition = '';
+      }, 300);
+    });
     
     // 性能测试
     const endTime = performance.now();
@@ -219,14 +279,133 @@
 
   // 隐藏右键菜单
   function hideContextMenu() {
-    if (!contextMenu) return;
+    if (!contextMenu || contextMenu.style.display === 'none') return;
     
     // 添加淡出动画
+    contextMenu.style.transition = 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
     contextMenu.style.opacity = '0';
     contextMenu.style.transform = 'scale(0.9)';
     
     setTimeout(() => {
       contextMenu.style.display = 'none';
+      // 重置过渡属性
+      contextMenu.style.transition = '';
+    }, 300);
+  }
+
+  // 菜单切换动画
+  function switchContextMenu(x: number, y: number, event?: MouseEvent) {
+    if (!contextMenu) return;
+    
+    // 获取当前菜单位置和尺寸
+    const currentRect = contextMenu.getBoundingClientRect();
+    
+    // 计算新菜单位置
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    
+    // 存储新的选中文本状态
+    const hasSelection = selectedText.length > 0;
+    
+    // 计算新菜单位置（考虑视口边界）
+    let newX = x;
+    let newY = y;
+    
+    // 先计算临时菜单位置以获取尺寸
+    // 创建临时元素来计算新菜单的尺寸
+    const tempMenu = document.createElement('div');
+    tempMenu.style.position = 'fixed';
+    tempMenu.style.visibility = 'hidden';
+    tempMenu.style.opacity = '0';
+    tempMenu.className = 'custom-context-menu';
+    tempMenu.innerHTML = contextMenu.innerHTML;
+    document.body.appendChild(tempMenu);
+    
+    // 根据新的选中文本状态更新临时菜单项
+    const tempGeneralItems = tempMenu.querySelectorAll('.context-menu-item.general');
+    const tempTextSelectionItems = tempMenu.querySelectorAll('.context-menu-item.text-selection');
+    
+    tempGeneralItems.forEach((item) => {
+      if (item.getAttribute('data-action') === 'copy-url' && hasSelection) {
+        (item as HTMLElement).style.display = 'none';
+      } else {
+        (item as HTMLElement).style.display = 'flex';
+      }
+    });
+    
+    tempTextSelectionItems.forEach((item) => {
+      (item as HTMLElement).style.display = hasSelection ? 'flex' : 'none';
+    });
+    
+    // 获取新尺寸
+    const newWidth = tempMenu.offsetWidth;
+    const newHeight = tempMenu.offsetHeight;
+    
+    // 移除临时元素
+    document.body.removeChild(tempMenu);
+    
+    // 调整新菜单位置以避免超出视口
+    // 避免超出视口右侧
+    if (newX + newWidth > windowWidth) {
+      newX = windowWidth - newWidth - 10;
+    }
+    
+    // 避免超出视口左侧
+    if (newX < 10) {
+      newX = 10;
+    }
+    
+    // 避免超出视口底部
+    if (newY + newHeight > windowHeight) {
+      newY = windowHeight - newHeight - 10;
+    }
+    
+    // 避免超出视口顶部
+    if (newY < 10) {
+      newY = 10;
+    }
+    
+    // 确保位置在视口内
+    newX = Math.max(10, Math.min(newX, windowWidth - newWidth - 10));
+    newY = Math.max(10, Math.min(newY, windowHeight - newHeight - 10));
+    
+    // 开始切换动画
+    // 1. 缩小并淡出当前菜单
+    contextMenu.style.transition = 'opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
+    contextMenu.style.opacity = '0';
+    contextMenu.style.transform = 'scale(0.8)';
+    
+    // 2. 短暂延迟后，移动并淡入新菜单
+    setTimeout(() => {
+      // 根据新的选中文本状态更新菜单项
+      const generalItems = contextMenu.querySelectorAll('.context-menu-item.general');
+      const textSelectionItems = contextMenu.querySelectorAll('.context-menu-item.text-selection');
+      
+      generalItems.forEach((item) => {
+        if (item.getAttribute('data-action') === 'copy-url' && hasSelection) {
+          (item as HTMLElement).style.display = 'none';
+        } else {
+          (item as HTMLElement).style.display = 'flex';
+        }
+      });
+      
+      textSelectionItems.forEach((item) => {
+        (item as HTMLElement).style.display = hasSelection ? 'flex' : 'none';
+      });
+      
+      // 设置新位置
+      contextMenu.style.left = `${newX}px`;
+      contextMenu.style.top = `${newY}px`;
+      
+      // 重置过渡并显示新菜单
+      contextMenu.style.transition = 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+      contextMenu.style.opacity = '1';
+      contextMenu.style.transform = 'scale(1)';
+      
+      // 3. 动画完成后重置过渡属性
+      setTimeout(() => {
+        contextMenu.style.transition = '';
+      }, 300);
     }, 200);
   }
 
@@ -398,262 +577,3 @@
     hideContextMenu();
   });
 </script>
-
-<style>
-  /* 右键菜单样式 */
-  #custom-right-click-menu {
-    position: fixed;
-    background-color: #ffffff;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-    padding: 4px 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 14px;
-    z-index: 9999;
-    display: none;
-    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    min-width: 180px;
-    user-select: none;
-    backdrop-filter: blur(8px);
-    background-color: rgba(255, 255, 255, 0.95);
-  }
-
-  /* 菜单列表 */
-  #custom-right-click-menu .context-menu-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  /* 菜单项 */
-  #custom-right-click-menu .context-menu-item {
-    display: flex;
-    align-items: center;
-    padding: 10px 16px;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    color: #333333;
-    border-radius: 6px;
-    margin: 2px 4px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  /* 菜单项悬停效果 */
-  #custom-right-click-menu .context-menu-item:hover {
-    background-color: #f0f0f0;
-    color: #000000;
-    transform: translateX(2px);
-  }
-
-  /* 菜单项选中效果 */
-  #custom-right-click-menu .context-menu-item:active {
-    background-color: #e0e0e0;
-    transform: translateX(2px) scale(0.98);
-  }
-
-  /* 菜单项分隔线 */
-  #custom-right-click-menu .context-menu-separator {
-    height: 1px;
-    background-color: #e0e0e0;
-    margin: 4px 0;
-  }
-
-  /* 深色模式适配 - 使用data-theme属性 */
-  html[data-theme="dark"] #custom-right-click-menu {
-    background-color: rgba(42, 42, 42, 0.95) !important;
-    border-color: #404040 !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
-    backdrop-filter: blur(8px);
-  }
-
-  html[data-theme="dark"] #custom-right-click-menu .context-menu-item {
-    color: #e0e0e0 !important;
-  }
-
-  html[data-theme="dark"] #custom-right-click-menu .context-menu-item:hover {
-    background-color: #3a3a3a !important;
-    color: #ffffff !important;
-  }
-
-  html[data-theme="dark"] #custom-right-click-menu .context-menu-item:active {
-    background-color: #4a4a4a !important;
-  }
-
-  html[data-theme="dark"] #custom-right-click-menu .context-menu-separator {
-    background-color: #404040 !important;
-  }
-
-  /* 菜单图标 */
-  #custom-right-click-menu .context-menu-icon {
-    width: 18px;
-    height: 18px;
-    margin-right: 10px;
-    flex-shrink: 0;
-    opacity: 0.6;
-    transition: all 0.2s ease;
-    filter: brightness(0) saturate(100%) invert(20%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
-    user-select: none;
-    pointer-events: none;
-    -webkit-user-drag: none;
-    drag: none;
-  }
-
-  /* 菜单项悬停时图标效果 */
-  #custom-right-click-menu .context-menu-item:hover .context-menu-icon {
-    opacity: 1;
-    transform: scale(1.05);
-  }
-
-  /* 深色模式图标效果 */
-  html[data-theme="dark"] #custom-right-click-menu .context-menu-icon {
-    filter: brightness(0) saturate(100%) invert(80%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%) !important;
-  }
-
-  /* 菜单项文本 */
-  #custom-right-click-menu .context-menu-item span {
-    transition: all 0.2s ease;
-  }
-
-  /* 菜单项悬停时文本效果 */
-  #custom-right-click-menu .context-menu-item:hover span {
-    font-weight: 500;
-  }
-
-  /* 响应式设计 */
-  @media (max-width: 600px) {
-    #custom-right-click-menu {
-      min-width: 160px;
-      font-size: 13px;
-    }
-
-    #custom-right-click-menu .context-menu-item {
-      padding: 8px 14px;
-    }
-
-    #custom-right-click-menu .context-menu-icon {
-      width: 16px;
-      height: 16px;
-      margin-right: 8px;
-    }
-  }
-
-  /* 确保菜单在移动设备上也能正常显示 */
-  @media (max-width: 480px) {
-    #custom-right-click-menu {
-      min-width: 140px;
-    }
-  }
-
-  /* 动画效果 */
-  @keyframes contextMenuFadeIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95) translateY(-5px);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1) translateY(0);
-    }
-  }
-
-  /* 显示动画 */
-  #custom-right-click-menu.showing {
-    animation: contextMenuFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-
-  /* 高对比度模式支持 */
-  @media (prefers-contrast: high) {
-    #custom-right-click-menu {
-      border: 2px solid #000000;
-    }
-
-    #custom-right-click-menu .context-menu-item:hover {
-      background-color: #000000;
-      color: #ffffff;
-    }
-  }
-
-  /* 减少动画偏好支持 */
-  @media (prefers-reduced-motion: reduce) {
-    #custom-right-click-menu {
-      transition: none;
-    }
-
-    #custom-right-click-menu.showing {
-      animation: none;
-    }
-  }
-
-  /* 操作反馈弹窗样式 */
-  .action-feedback {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #ffffff;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-    padding: 16px 20px;
-    display: none;
-    align-items: center;
-    z-index: 10000;
-    backdrop-filter: blur(8px);
-    background-color: rgba(255, 255, 255, 0.95);
-    animation: feedbackFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards, feedbackFadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) 2.7s forwards;
-  }
-
-  /* 深色模式适配 */
-  html[data-theme="dark"] .action-feedback {
-    background-color: rgba(42, 42, 42, 0.95) !important;
-    border-color: #404040 !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
-  }
-
-  .feedback-content {
-    display: flex;
-    align-items: center;
-  }
-
-  .feedback-icon {
-    width: 16px;
-    height: 16px;
-    margin-right: 8px;
-    color: #4CAF50;
-  }
-
-  .feedback-message {
-    font-size: 14px;
-    color: #333333;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
-
-  html[data-theme="dark"] .feedback-message {
-    color: #e0e0e0 !important;
-  }
-
-  /* 反馈弹窗动画 */
-  @keyframes feedbackFadeIn {
-    from {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(0.9);
-    }
-    to {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-  }
-
-  @keyframes feedbackFadeOut {
-    from {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-    to {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(0.9);
-    }
-  }
-</style>

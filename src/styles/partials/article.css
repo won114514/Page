@@ -1,0 +1,294 @@
+/* 文章样式 */
+article {
+  margin-bottom: 2rem;
+}
+
+article h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+article h2 {
+  font-size: 1.5rem;
+  margin: 1.5rem 0 1rem;
+}
+
+article h3 {
+  font-size: 1.25rem;
+  margin: 1.5rem 0 1rem;
+  text-decoration: none;
+  position: relative;
+  line-height: 1.4;
+  transition: color 0.3s ease;
+}
+
+article h3:hover {
+  color: var(--accent-color);
+}
+
+article p {
+  margin-bottom: 1rem;
+}
+
+/* 列表样式优化 */
+article ul, article ol {
+  margin-left: 2rem;
+  margin-bottom: 1.25rem;
+  padding-left: 0.5rem;
+}
+
+article li {
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+  position: relative;
+  padding-left: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+/* 无序列表样式 */
+article ul {
+  list-style-type: disc;
+}
+
+article ul ul {
+  list-style-type: circle;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+article ul ul ul {
+  list-style-type: square;
+}
+
+/* 有序列表样式 */
+article ol {
+  list-style-type: decimal;
+}
+
+article ol ol {
+  list-style-type: lower-alpha;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+article ol ol ol {
+  list-style-type: lower-roman;
+}
+
+/* 列表项悬停效果 */
+article li:hover {
+  color: var(--accent-color);
+  transform: translateX(4px);
+}
+
+/* 列表项嵌套样式调整 */
+article li ul,
+article li ol {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  margin-left: 1.5rem;
+}
+
+/* 引用样式 */
+article blockquote {
+  margin: 1.5rem 0;
+  padding: 1rem 1.5rem;
+  border-left: 3px solid var(--accent-color);
+  background-color: rgba(0, 0, 0, 0.05);
+  font-style: italic;
+  color: var(--text-color);
+  opacity: 0.9;
+}
+
+article blockquote p {
+  margin: 0;
+}
+
+[data-theme="dark"] article blockquote {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* 图片样式优化 */
+article img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 1.5rem 0;
+  transition: all 0.3s ease;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  border: 1px solid var(--border-color);
+}
+
+article img:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* 图片说明文字样式 */
+article figure {
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+article figcaption {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-color);
+  opacity: 0.8;
+  font-style: italic;
+}
+
+/* 暗色模式下的图片样式 */
+[data-theme="dark"] article img {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] article img:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* 行内代码样式 */
+article code {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  background-color: var(--code-bg-color);
+  color: var(--code-text-color);
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.9rem;
+}
+
+/* 文章列表样式 */
+.post-list {
+  list-style: none;
+}
+
+.post-item {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.post-item:last-child {
+  border-bottom: none;
+}
+
+.post-item h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.post-meta {
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin-bottom: 0.5rem;
+}
+
+.post-excerpt {
+  margin-bottom: 1rem;
+}
+
+/* 表格样式 */
+article table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+/* 表格悬停效果 */
+article table:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 表头样式 */
+article table th {
+  background-color: rgba(0, 0, 0, 0.02);
+  color: var(--text-color);
+  font-weight: 600;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+/* 表格单元格样式 */
+article table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+/* 表格行悬停效果 */
+article table tr:hover {
+  background-color: rgba(0, 0, 0, 0.01);
+}
+
+/* 表格最后一行样式 */
+article table tr:last-child td {
+  border-bottom: none;
+}
+
+/* 暗色模式表格样式 */
+[data-theme="dark"] article table {
+  border-color: var(--border-color);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] article table:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] article table th {
+  background-color: rgba(255, 255, 255, 0.02);
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] article table tr:hover {
+  background-color: rgba(255, 255, 255, 0.01);
+}
+
+/* 表格容器样式，用于响应式设计 */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* 暗色模式表格容器样式 */
+[data-theme="dark"] .table-container {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  article table {
+    font-size: 0.85rem;
+  }
+  
+  article table th,
+  article table td {
+    padding: 0.6rem 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  article table {
+    font-size: 0.75rem;
+  }
+  
+  article table th,
+  article table td {
+    padding: 0.5rem 0.6rem;
+  }
+}

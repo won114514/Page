@@ -1,0 +1,207 @@
+/* 代码块样式优化 */
+article pre,
+article pre.astro-code {
+  padding: 0.5rem !important;
+  border-radius: 4px !important;
+  overflow-x: auto !important;
+  margin-bottom: 1rem !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.85rem !important;
+  line-height: 1 !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid var(--border-color) !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
+}
+
+/* Shiki 主题切换支持 */
+article pre.astro-code {
+  background-color: var(--shiki-light-bg) !important;
+}
+
+[data-theme="dark"] article pre.astro-code {
+  background-color: var(--shiki-dark-bg) !important;
+}
+
+article pre.astro-code code span {
+  color: var(--shiki-light) !important;
+}
+
+[data-theme="dark"] article pre.astro-code code span {
+  color: var(--shiki-dark) !important;
+}
+
+/* 代码语言标签样式 */
+.code-language {
+  position: absolute !important;
+  top: 0.35rem !important;
+  right: 0.35rem !important;
+  background-color: var(--code-bg-color) !important;
+  color: var(--text-color) !important;
+  padding: 0.15rem 0.5rem !important;
+  border-radius: 4px !important;
+  font-size: 0.7rem !important;
+  font-family: var(--font-sans) !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.2px !important;
+  z-index: 5 !important;
+  border: 1px solid var(--border-color) !important;
+  transition: all 0.2s ease !important;
+}
+
+/* 语言标签悬停效果 */
+.code-language:hover {
+  border-color: var(--accent-color) !important;
+}
+
+/* 暗色模式下的语言标签样式 */
+[data-theme="dark"] .code-language {
+  background-color: var(--code-bg-color) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .code-language:hover {
+  border-color: var(--accent-color) !important;
+}
+
+/* 鼠标在代码框中时隐藏语言标签 */
+article pre.astro-code:hover .code-language {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 鼠标不在代码框中时显示语言标签 */
+article pre.astro-code:not(:hover) .code-language {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+article pre:hover,
+article pre.astro-code:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
+}
+
+article pre code,
+article pre.astro-code code {
+  background: none !important;
+  padding: 0 !important;
+  color: var(--code-text-color) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.85rem !important;
+  line-height: 1 !important;
+}
+
+/* 复制按钮样式 - */
+.copy-button {
+  position: absolute !important;
+  top: 0.35rem !important;
+  right: 0.35rem !important;
+  background-color: var(--bg-color) !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 4px !important;
+  padding: 0.25rem !important;
+  font-size: 0.75rem !important;
+  font-family: var(--font-sans) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  z-index: 10 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 28px !important;
+  height: 28px !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 鼠标在代码框中时显示复制按钮 */
+article pre.astro-code:hover .copy-button {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* 鼠标不在代码框中时隐藏复制按钮 */
+article pre.astro-code:not(:hover) .copy-button {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+.copy-button:hover {
+  background-color: var(--accent-color) !important;
+  color: var(--bg-color) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+}
+
+.copy-button.copied {
+  background-color: #28a745 !important;
+  color: white !important;
+}
+
+/* 复制按钮图标 */
+.copy-button-icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.copy-button-icon svg {
+  width: 16px !important;
+  height: 16px !important;
+  fill: currentColor !important;
+}
+
+.copy-button .success-icon {
+  display: none !important;
+}
+
+.copy-button.copied .copy-icon {
+  display: none !important;
+}
+
+.copy-button.copied .success-icon {
+  display: block !important;
+}
+
+/* 行号样式 - 动态添加的行号 */
+article pre.astro-code .line {
+  display: flex !important;
+  align-items: center !important;
+  line-height: 1 !important;
+  height: auto !important;
+  min-height: 1em !important;
+}
+
+article pre.astro-code .line-number {
+  display: inline-block !important;
+  width: 1.1rem !important;
+  margin-right: 0.6rem !important;
+  padding-right: 0.35rem !important;
+  text-align: right !important;
+  color: var(--text-color) !important;
+  opacity: 0.6 !important;
+  border-right: 1px solid var(--border-color) !important;
+  user-select: none !important;
+  font-size: 0.65rem !important;
+  line-height: 1 !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* 暗色模式下的代码块样式调整 */
+[data-theme="dark"] article pre,
+[data-theme="dark"] article pre.astro-code {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] article pre:hover,
+[data-theme="dark"] article pre.astro-code:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+}
