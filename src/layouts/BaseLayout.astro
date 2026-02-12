@@ -24,6 +24,18 @@ const { title } = Astro.props;
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- MathJax 将在需要时懒加载 -->
     
+    <!-- 内联脚本：在CSS加载前设置主题，避免白色闪烁 -->
+    <script>
+      (function() {
+        // 在CSS加载前设置主题
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
+    
     <style is:global>@import url('src/styles/main.css');</style>
   </head>
   <body>

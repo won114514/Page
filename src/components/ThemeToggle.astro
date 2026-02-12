@@ -16,13 +16,6 @@
   const toggle = document.querySelector('.theme-toggle');
   const html = document.documentElement;
 
-  // 初始化主题
-  if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    html.setAttribute('data-theme', 'dark');
-  } else {
-    html.setAttribute('data-theme', 'light');
-  }
-
   if (toggle) {
     toggle.addEventListener('click', () => {
       if (html.getAttribute('data-theme') === 'dark') {
