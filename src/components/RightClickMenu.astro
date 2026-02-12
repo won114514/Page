@@ -106,7 +106,7 @@ import "../styles/right-click-menu.css";
         this.touchStartX = touch.clientX;
         this.touchStartY = touch.clientY;
         this.isSelectingText = false;
-      });
+      }, { passive: true });
       
       // 监听触摸移动事件
       document.addEventListener('touchmove', (e) => {
@@ -131,12 +131,12 @@ import "../styles/right-click-menu.css";
             this.optimizeTextSelection(selection);
           }
         }
-      });
+      }, { passive: true });
       
       // 监听触摸结束事件
       document.addEventListener('touchend', (e) => {
         this.handleTouchEnd(e);
-      });
+      }, { passive: true });
       
       // 监听右键点击事件
       document.addEventListener('contextmenu', (e) => {
@@ -186,27 +186,27 @@ import "../styles/right-click-menu.css";
         const touch = e.touches[0];
         this.touchStartXForSwipe = touch.clientX;
         this.touchStartYForSwipe = touch.clientY;
-      });
+      }, { passive: false });
       
       // 触摸移动事件（用于滑动检测）
       this.contextMenu.addEventListener('touchmove', (e) => {
         e.preventDefault(); // 阻止默认行为，防止页面滚动
         this.handleMenuTouchMove(e);
-      });
+      }, { passive: false });
       
       // 触摸反馈事件
       this.contextMenu.addEventListener('touchstart', (e) => {
         e.preventDefault(); // 阻止默认行为，防止页面滚动
         this.handleMenuItemTouchStart(e);
-      });
+      }, { passive: false });
       
       this.contextMenu.addEventListener('touchend', (e) => {
         this.handleMenuItemTouchEnd(e);
-      });
+      }, { passive: true });
       
       this.contextMenu.addEventListener('touchcancel', (e) => {
         this.handleMenuItemTouchCancel(e);
-      });
+      }, { passive: true });
       
       // 菜单点击事件
       this.contextMenu.addEventListener('click', (e) => {
