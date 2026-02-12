@@ -59,10 +59,110 @@ import "../styles/right-click-menu.css";
 
   // 存储鼠标事件信息
   let lastMouseEvent: MouseEvent | null = null;
+  // 存储触摸事件信息
+  let lastTouchEvent: TouchEvent | null = null;
+  // 触摸开始时间，用于判断是点击还是长按
+  let touchStartTime = 0;
+  // 触摸开始位置
+  let touchStartX = 0;
+  let touchStartY = 0;
+  // 长按阈值（毫秒）
+  const LONG_PRESS_THRESHOLD = 500;
+  // 触摸移动阈值，超过此值视为滑动而非点击
+  const TOUCH_MOVE_THRESHOLD = 10;
+  // 是否正在进行文本选择
+  let isSelectingText = false;
 
   // 监听鼠标移动事件，记录最后一次鼠标位置
   document.addEventListener('mousemove', (e) => {
     lastMouseEvent = e;
+  });
+
+  // 监听触摸开始事件
+  document.addEventListener('touchstart', (e) => {
+    touchStartTime = Date.now();
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    isSelectingText = false;
+  });
+
+  // 监听触摸移动事件，记录最后一次触摸位置
+  document.addEventListener('touchmove', (e) => {
+    lastTouchEvent = e;
+    // 检测是否正在进行文本选择
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim().length > 0) {
+      isSelectingText = true;
+      // 优化文本选择，防止一次性选择过多内容
+      optimizeTextSelection(selection);
+    }
+  });
+
+  // 优化文本选择，防止一次性选择过多内容
+  function optimizeTextSelection(selection: Selection) {
+    if (!selection) return;
+    
+    const selectedText = selection.toString().trim();
+    // 限制最大选择长度，防止选择过多内容
+    const MAX_SELECTION_LENGTH = 1000;
+    
+    if (selectedText.length > MAX_SELECTION_LENGTH) {
+      // 如果选择内容过长，尝试调整选区
+      const range = selection.getRangeAt(0);
+      const startNode = range.startContainer;
+      const startOffset = range.startOffset;
+      
+      // 创建新的范围，只包含前MAX_SELECTION_LENGTH个字符
+      const newRange = document.createRange();
+      newRange.setStart(startNode, startOffset);
+      
+      // 尝试找到合适的结束位置
+      let currentNode = startNode;
+      let currentOffset = startOffset;
+      let charCount = 0;
+      
+      // 简单的文本长度限制，避免选择过多内容
+      // 注意：这种方法可能不够精确，但可以作为基本优化
+      if (selectedText.length > MAX_SELECTION_LENGTH * 2) {
+        // 如果选择内容过长，显示提示并清空选择
+        showFeedback('选择内容过长，已自动调整');
+        // 不清空选择，而是让用户自行调整
+        // selection.removeAllRanges();
+      }
+    }
+  }
+
+  // 监听触摸结束事件，处理文本选择后的菜单显示
+  document.addEventListener('touchend', (e) => {
+    const touch = e.changedTouches[0];
+    const touchEndX = touch.clientX;
+    const touchEndY = touch.clientY;
+    const touchDuration = Date.now() - touchStartTime;
+    const touchDistance = Math.sqrt(
+      Math.pow(touchEndX - touchStartX, 2) + Math.pow(touchEndY - touchStartY, 2)
+    );
+
+    // 检查是否有选中的文本
+    const selection = window.getSelection();
+    selectedText = selection ? selection.toString().trim() : '';
+
+    // 如果有选中文本，显示菜单
+    if (selectedText && isSelectingText) {
+      // 存储右键点击的目标元素
+      rightClickTarget = touch.target as Element;
+      
+      // 检查菜单是否已经显示
+    const menuVisible = contextMenu && contextMenu.style.display === 'block';
+    
+    // 如果菜单已经显示，使用切换动画
+    if (menuVisible) {
+      switchContextMenu(touchEndX, touchEndY, e);
+    } else {
+      // 否则直接显示菜单
+      showContextMenu(touchEndX, touchEndY, e);
+    }
+    }
   });
 
   // 监听右键点击事件
@@ -140,7 +240,7 @@ import "../styles/right-click-menu.css";
   });
 
   // 显示右键菜单
-  function showContextMenu(x: number, y: number, event?: MouseEvent) {
+  function showContextMenu(x: number, y: number, event?: MouseEvent | TouchEvent) {
     if (!contextMenu) return;
     
     // 记录开始时间，用于性能测试
@@ -183,7 +283,7 @@ import "../styles/right-click-menu.css";
     let positionX = x;
     let positionY = y;
     
-    // 检查是否有有效鼠标事件，如果没有则使用选区位置
+    // 检查是否有有效事件，如果没有则使用选区位置
     if (!event && hasSelection) {
       const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
@@ -196,20 +296,37 @@ import "../styles/right-click-menu.css";
     }
     
     // 当有选中文本时，确保菜单定位在选中内容的附近
-    if (hasSelection && event) {
+    if (hasSelection) {
       const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
         const rect = range.getBoundingClientRect();
         
         // 检查点击位置是否在选区内
-        const clickInSelection = 
-          event.clientX >= rect.left && 
-          event.clientX <= rect.right && 
-          event.clientY >= rect.top && 
-          event.clientY <= rect.bottom;
+        let clickInSelection = false;
+        if (event instanceof MouseEvent) {
+          // 鼠标事件
+          clickInSelection = 
+            event.clientX >= rect.left && 
+            event.clientX <= rect.right && 
+            event.clientY >= rect.top && 
+            event.clientY <= rect.bottom;
+        } else if (event instanceof TouchEvent) {
+          // 触摸事件
+          const touch = event.touches[0] || event.changedTouches[0];
+          if (touch) {
+            clickInSelection = 
+              touch.clientX >= rect.left && 
+              touch.clientX <= rect.right && 
+              touch.clientY >= rect.top && 
+              touch.clientY <= rect.bottom;
+          }
+        } else if (!event) {
+          // 无事件，可能是文本选择后自动显示
+          clickInSelection = true;
+        }
         
-        // 如果点击位置在选区内，调整菜单位置以避免遮挡选中内容
+        // 如果点击位置在选区内或无事件，调整菜单位置以避免遮挡选中内容
         if (clickInSelection) {
           // 尝试将菜单定位在选区的右侧或下方
           if (rect.right + menuWidth + 10 <= windowWidth) {
@@ -224,6 +341,10 @@ import "../styles/right-click-menu.css";
           } else if (rect.top - menuHeight - 10 >= 0) {
             positionX = rect.left;
             positionY = rect.top - menuHeight - 10;
+          } else {
+            // 如果所有方向都不够空间，尝试将菜单定位在选区中心附近
+            positionX = Math.min(rect.right, windowWidth - menuWidth - 10);
+            positionY = Math.min(rect.bottom, windowHeight - menuHeight - 10);
           }
         }
       }
@@ -294,7 +415,7 @@ import "../styles/right-click-menu.css";
   }
 
   // 菜单切换动画
-  function switchContextMenu(x: number, y: number, event?: MouseEvent) {
+  function switchContextMenu(x: number, y: number, event?: MouseEvent | TouchEvent) {
     if (!contextMenu) return;
     
     // 获取当前菜单位置和尺寸
@@ -576,4 +697,65 @@ import "../styles/right-click-menu.css";
     // 窗口尺寸变化时关闭菜单，以避免位置计算错误
     hideContextMenu();
   });
+
+  // 触摸滑动关闭菜单
+  let touchStartXForSwipe = 0;
+  let touchStartYForSwipe = 0;
+  const SWIPE_THRESHOLD = 50;
+
+  // 监听菜单的触摸开始事件
+  if (contextMenu) {
+    contextMenu.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      touchStartXForSwipe = touch.clientX;
+      touchStartYForSwipe = touch.clientY;
+    });
+
+    // 监听菜单的触摸移动事件
+    contextMenu.addEventListener('touchmove', (e) => {
+      const touch = e.touches[0];
+      const touchEndX = touch.clientX;
+      const touchEndY = touch.clientY;
+      const deltaX = touchEndX - touchStartXForSwipe;
+      const deltaY = touchEndY - touchStartYForSwipe;
+      const swipeDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+      // 如果滑动距离超过阈值，关闭菜单
+      if (swipeDistance > SWIPE_THRESHOLD) {
+        hideContextMenu();
+      }
+    });
+
+    // 优化移动端触摸反馈，添加触摸时的视觉效果
+    contextMenu.addEventListener('touchstart', (e) => {
+      const target = e.target as HTMLElement;
+      const menuItem = target.closest('.context-menu-item') as HTMLElement | null;
+      if (menuItem) {
+        // 添加触摸反馈效果
+        menuItem.style.transform = 'scale(0.98)';
+        menuItem.style.transition = 'transform 0.1s ease';
+      }
+    });
+
+    contextMenu.addEventListener('touchend', (e) => {
+      const target = e.target as HTMLElement;
+      const menuItem = target.closest('.context-menu-item') as HTMLElement | null;
+      if (menuItem) {
+        // 移除触摸反馈效果
+        menuItem.style.transform = '';
+        menuItem.style.transition = '';
+      }
+    });
+
+    // 优化触摸取消事件处理
+    contextMenu.addEventListener('touchcancel', (e) => {
+      const target = e.target as HTMLElement;
+      const menuItem = target.closest('.context-menu-item') as HTMLElement | null;
+      if (menuItem) {
+        // 移除触摸反馈效果
+        menuItem.style.transform = '';
+        menuItem.style.transition = '';
+      }
+    });
+  }
 </script>
