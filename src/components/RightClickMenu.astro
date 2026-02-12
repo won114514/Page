@@ -168,6 +168,7 @@ import "../styles/right-click-menu.css";
       
       // 触摸开始事件（用于滑动检测）
       this.contextMenu.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // 阻止默认行为，防止页面滚动
         const touch = e.touches[0];
         this.touchStartXForSwipe = touch.clientX;
         this.touchStartYForSwipe = touch.clientY;
@@ -175,11 +176,13 @@ import "../styles/right-click-menu.css";
       
       // 触摸移动事件（用于滑动检测）
       this.contextMenu.addEventListener('touchmove', (e) => {
+        e.preventDefault(); // 阻止默认行为，防止页面滚动
         this.handleMenuTouchMove(e);
       });
       
       // 触摸反馈事件
       this.contextMenu.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // 阻止默认行为，防止页面滚动
         this.handleMenuItemTouchStart(e);
       });
       
