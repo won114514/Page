@@ -50,457 +50,377 @@ import "../styles/right-click-menu.css";
 </div>
 
 <script>
-  // 获取菜单元素
-  const contextMenu = document.getElementById('custom-right-click-menu');
-  const feedbackElement = document.getElementById('action-feedback');
-  let selectedText = '';
-  let justSelectedText = false;
-  let rightClickTarget: Element | null = null;
-
-  // 存储鼠标事件信息
-  let lastMouseEvent: MouseEvent | null = null;
-  // 存储触摸事件信息
-  let lastTouchEvent: TouchEvent | null = null;
-  // 触摸开始时间，用于判断是点击还是长按
-  let touchStartTime = 0;
-  // 触摸开始位置
-  let touchStartX = 0;
-  let touchStartY = 0;
-  // 长按阈值（毫秒）
-  const LONG_PRESS_THRESHOLD = 500;
-  // 触摸移动阈值，超过此值视为滑动而非点击
-  const TOUCH_MOVE_THRESHOLD = 10;
-  // 是否正在进行文本选择
-  let isSelectingText = false;
-
-  // 监听鼠标移动事件，记录最后一次鼠标位置
-  document.addEventListener('mousemove', (e) => {
-    lastMouseEvent = e;
-  });
-
-  // 监听触摸开始事件
-  document.addEventListener('touchstart', (e) => {
-    touchStartTime = Date.now();
-    const touch = e.touches[0];
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
-    isSelectingText = false;
-  });
-
-  // 监听触摸移动事件，记录最后一次触摸位置
-  document.addEventListener('touchmove', (e) => {
-    lastTouchEvent = e;
-    // 检测是否正在进行文本选择
-    const selection = window.getSelection();
-    if (selection && selection.toString().trim().length > 0) {
-      isSelectingText = true;
-      // 优化文本选择，防止一次性选择过多内容
-      optimizeTextSelection(selection);
+  // 右键菜单类
+  class CustomRightClickMenu {
+    private contextMenu: HTMLElement | null;
+    private feedbackElement: HTMLElement | null;
+    private selectedText: string;
+    private justSelectedText: boolean;
+    private rightClickTarget: Element | null;
+    private lastMouseEvent: MouseEvent | null;
+    private lastTouchEvent: TouchEvent | null;
+    private touchStartTime: number;
+    private touchStartX: number;
+    private touchStartY: number;
+    private isSelectingText: boolean;
+    private touchStartXForSwipe: number;
+    private touchStartYForSwipe: number;
+    
+    // 常量定义
+    private readonly LONG_PRESS_THRESHOLD = 500;
+    private readonly TOUCH_MOVE_THRESHOLD = 10;
+    private readonly MAX_SELECTION_LENGTH = 1000;
+    private readonly SWIPE_THRESHOLD = 50;
+    private readonly ANIMATION_DURATION = 300;
+    private readonly MENU_PADDING = 10;
+    
+    constructor() {
+      this.contextMenu = document.getElementById('custom-right-click-menu');
+      this.feedbackElement = document.getElementById('action-feedback');
+      this.selectedText = '';
+      this.justSelectedText = false;
+      this.rightClickTarget = null;
+      this.lastMouseEvent = null;
+      this.lastTouchEvent = null;
+      this.touchStartTime = 0;
+      this.touchStartX = 0;
+      this.touchStartY = 0;
+      this.isSelectingText = false;
+      this.touchStartXForSwipe = 0;
+      this.touchStartYForSwipe = 0;
+      
+      this.initEventListeners();
     }
-  });
-
-  // 优化文本选择，防止一次性选择过多内容
-  function optimizeTextSelection(selection: Selection) {
-    if (!selection) return;
     
-    const selectedText = selection.toString().trim();
-    // 限制最大选择长度，防止选择过多内容
-    const MAX_SELECTION_LENGTH = 1000;
+    // 初始化事件监听器
+    private initEventListeners() {
+      // 监听鼠标移动事件
+      document.addEventListener('mousemove', (e) => {
+        this.lastMouseEvent = e;
+      });
+      
+      // 监听触摸开始事件
+      document.addEventListener('touchstart', (e) => {
+        this.touchStartTime = Date.now();
+        const touch = e.touches[0];
+        this.touchStartX = touch.clientX;
+        this.touchStartY = touch.clientY;
+        this.isSelectingText = false;
+      });
+      
+      // 监听触摸移动事件
+      document.addEventListener('touchmove', (e) => {
+        this.lastTouchEvent = e;
+        // 检测是否正在进行文本选择
+        const selection = window.getSelection();
+        if (selection && selection.toString().trim().length > 0) {
+          this.isSelectingText = true;
+          this.optimizeTextSelection(selection);
+        }
+      });
+      
+      // 监听触摸结束事件
+      document.addEventListener('touchend', (e) => {
+        this.handleTouchEnd(e);
+      });
+      
+      // 监听右键点击事件
+      document.addEventListener('contextmenu', (e) => {
+        this.handleContextMenu(e);
+      });
+      
+      // 监听鼠标抬起事件（文本选择）
+      document.addEventListener('mouseup', (e) => {
+        this.handleMouseUp(e);
+      });
+      
+      // 点击页面其他地方关闭菜单
+      document.addEventListener('click', (e) => {
+        if (!this.justSelectedText && (!this.contextMenu || !this.contextMenu.contains(e.target as Node))) {
+          this.hideContextMenu();
+        }
+      });
+      
+      // 监听键盘事件
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          this.hideContextMenu();
+        }
+      });
+      
+      // 监听页面滚动事件
+      window.addEventListener('scroll', () => {
+        this.hideContextMenu();
+      });
+      
+      // 监听窗口尺寸变化事件
+      window.addEventListener('resize', () => {
+        this.hideContextMenu();
+      });
+      
+      // 初始化菜单触摸事件
+      this.initMenuTouchEvents();
+    }
     
-    if (selectedText.length > MAX_SELECTION_LENGTH) {
-      // 如果选择内容过长，尝试调整选区
-      const range = selection.getRangeAt(0);
-      const startNode = range.startContainer;
-      const startOffset = range.startOffset;
+    // 初始化菜单触摸事件
+    private initMenuTouchEvents() {
+      if (!this.contextMenu) return;
       
-      // 创建新的范围，只包含前MAX_SELECTION_LENGTH个字符
-      const newRange = document.createRange();
-      newRange.setStart(startNode, startOffset);
+      // 触摸开始事件（用于滑动检测）
+      this.contextMenu.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        this.touchStartXForSwipe = touch.clientX;
+        this.touchStartYForSwipe = touch.clientY;
+      });
       
-      // 尝试找到合适的结束位置
-      let currentNode = startNode;
-      let currentOffset = startOffset;
-      let charCount = 0;
+      // 触摸移动事件（用于滑动检测）
+      this.contextMenu.addEventListener('touchmove', (e) => {
+        this.handleMenuTouchMove(e);
+      });
       
-      // 简单的文本长度限制，避免选择过多内容
-      // 注意：这种方法可能不够精确，但可以作为基本优化
-      if (selectedText.length > MAX_SELECTION_LENGTH * 2) {
-        // 如果选择内容过长，显示提示并清空选择
-        showFeedback('选择内容过长，已自动调整');
-        // 不清空选择，而是让用户自行调整
-        // selection.removeAllRanges();
+      // 触摸反馈事件
+      this.contextMenu.addEventListener('touchstart', (e) => {
+        this.handleMenuItemTouchStart(e);
+      });
+      
+      this.contextMenu.addEventListener('touchend', (e) => {
+        this.handleMenuItemTouchEnd(e);
+      });
+      
+      this.contextMenu.addEventListener('touchcancel', (e) => {
+        this.handleMenuItemTouchCancel(e);
+      });
+      
+      // 菜单点击事件
+      this.contextMenu.addEventListener('click', (e) => {
+        this.handleMenuClick(e);
+      });
+    }
+    
+    // 处理触摸结束事件
+    private handleTouchEnd(e: TouchEvent) {
+      const touch = e.changedTouches[0];
+      const touchEndX = touch.clientX;
+      const touchEndY = touch.clientY;
+      
+      // 检查是否有选中的文本
+      const selection = window.getSelection();
+      this.selectedText = selection ? selection.toString().trim() : '';
+      
+      // 如果有选中文本，显示菜单
+      if (this.selectedText && this.isSelectingText) {
+        this.rightClickTarget = touch.target as Element;
+        this.showOrSwitchMenu(touchEndX, touchEndY, e);
       }
     }
-  }
-
-  // 监听触摸结束事件，处理文本选择后的菜单显示
-  document.addEventListener('touchend', (e) => {
-    const touch = e.changedTouches[0];
-    const touchEndX = touch.clientX;
-    const touchEndY = touch.clientY;
-    const touchDuration = Date.now() - touchStartTime;
-    const touchDistance = Math.sqrt(
-      Math.pow(touchEndX - touchStartX, 2) + Math.pow(touchEndY - touchStartY, 2)
-    );
-
-    // 检查是否有选中的文本
-    const selection = window.getSelection();
-    selectedText = selection ? selection.toString().trim() : '';
-
-    // 如果有选中文本，显示菜单
-    if (selectedText && isSelectingText) {
-      // 存储右键点击的目标元素
-      rightClickTarget = touch.target as Element;
-      
-      // 检查菜单是否已经显示
-    const menuVisible = contextMenu && contextMenu.style.display === 'block';
     
-    // 如果菜单已经显示，使用切换动画
-    if (menuVisible) {
-      switchContextMenu(touchEndX, touchEndY, e);
-    } else {
-      // 否则直接显示菜单
-      showContextMenu(touchEndX, touchEndY, e);
-    }
-    }
-  });
-
-  // 监听右键点击事件
-  document.addEventListener('contextmenu', (e) => {
-    // 阻止默认右键菜单（确保在所有浏览器中都能阻止，特别是Edge）
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // 存储右键点击的目标元素
-    rightClickTarget = e.target as Element;
-    
-    // 获取选中的文本
-    const selection = window.getSelection();
-    selectedText = selection ? selection.toString().trim() : '';
-    
-    // 检查菜单是否已经显示
-    const menuVisible = contextMenu && contextMenu.style.display === 'block';
-    
-    // 如果菜单已经显示，使用切换动画
-    if (menuVisible) {
-      switchContextMenu(e.clientX, e.clientY, e);
-    } else {
-      // 否则直接显示菜单
-      showContextMenu(e.clientX, e.clientY, e);
-    }
-  });
-
-  // 监听文本选择事件，当用户选中文本时自动显示菜单
-  document.addEventListener('mouseup', (e) => {
-    // 检查点击目标是否在菜单内，如果是则不显示菜单
-    if (contextMenu && contextMenu.contains(e.target as Node)) {
-      return;
-    }
-    
-    // 检查点击目标是否是输入元素，如果是则使用输入元素的位置
-    const target = e.target as Element;
-    const isInputElement = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
-    
-    const selection = window.getSelection();
-    selectedText = selection ? selection.toString().trim() : '';
-    
-    // 如果有选中的文本，自动显示菜单
-    if (selectedText && selection && selection.rangeCount > 0) {
-      // 设置标志，表示刚刚完成了文本选择
-      justSelectedText = true;
+    // 处理右键点击事件
+    private handleContextMenu(e: MouseEvent) {
       e.preventDefault();
       e.stopPropagation();
-      // 100毫秒后重置标志，以避免影响后续的点击操作
-      setTimeout(() => {
-        justSelectedText = false;
-      }, 100);
       
-      // 检查菜单是否已经显示
-      const menuVisible = contextMenu && contextMenu.style.display === 'block';
+      this.rightClickTarget = e.target as Element;
       
-      // 如果菜单已经显示，使用切换动画
+      // 获取选中的文本
+      const selection = window.getSelection();
+      this.selectedText = selection ? selection.toString().trim() : '';
+      
+      this.showOrSwitchMenu(e.clientX, e.clientY, e);
+    }
+    
+    // 处理鼠标抬起事件（文本选择）
+    private handleMouseUp(e: MouseEvent) {
+      // 检查点击目标是否在菜单内
+      if (this.contextMenu && this.contextMenu.contains(e.target as Node)) {
+        return;
+      }
+      
+      const selection = window.getSelection();
+      this.selectedText = selection ? selection.toString().trim() : '';
+      
+      // 如果有选中的文本，自动显示菜单
+      if (this.selectedText && selection && selection.rangeCount > 0) {
+        this.justSelectedText = true;
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // 100毫秒后重置标志
+        setTimeout(() => {
+          this.justSelectedText = false;
+        }, 100);
+        
+        this.showOrSwitchMenu(e.clientX, e.clientY, e);
+      }
+    }
+    
+    // 显示或切换菜单
+    private showOrSwitchMenu(x: number, y: number, event: MouseEvent | TouchEvent) {
+      if (!this.contextMenu) return;
+      
+      const menuVisible = this.contextMenu.style.display === 'block';
+      
       if (menuVisible) {
-        switchContextMenu(e.clientX, e.clientY, e);
+        this.switchContextMenu(x, y, event);
       } else {
-        // 否则直接显示菜单
-        showContextMenu(e.clientX, e.clientY, e);
-      }
-    }
-  });
-
-  // 点击页面其他地方关闭菜单
-  document.addEventListener('click', (e) => {
-    // 如果是刚刚完成了文本选择，不关闭菜单
-    if (justSelectedText) return;
-    
-    // 如果点击的不是菜单本身，才关闭菜单
-    if (!contextMenu || !contextMenu.contains(e.target as Node)) {
-      hideContextMenu();
-    }
-  });
-
-  // 显示右键菜单
-  function showContextMenu(x: number, y: number, event?: MouseEvent | TouchEvent) {
-    if (!contextMenu) return;
-    
-    // 记录开始时间，用于性能测试
-    const startTime = performance.now();
-    
-    // 根据是否有选中文本显示不同的菜单项
-    const hasSelection = selectedText.length > 0;
-    
-    // 显示或隐藏菜单项
-    const generalItems = contextMenu.querySelectorAll('.context-menu-item.general');
-    const textSelectionItems = contextMenu.querySelectorAll('.context-menu-item.text-selection');
-    
-    generalItems.forEach((item) => {
-      // 对于通用菜单项，始终显示，但复制链接项在有选中文本时隐藏
-      if (item.getAttribute('data-action') === 'copy-url' && hasSelection) {
-        (item as HTMLElement).style.display = 'none';
-      } else {
-        (item as HTMLElement).style.display = 'flex';
-      }
-    });
-    
-    textSelectionItems.forEach((item) => {
-      (item as HTMLElement).style.display = hasSelection ? 'flex' : 'none';
-    });
-    
-    // 计算菜单位置，确保不会超出屏幕
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-    
-    // 先显示菜单以获取正确的尺寸
-    contextMenu.style.display = 'block';
-    contextMenu.style.opacity = '0';
-    contextMenu.style.transform = 'scale(0.9)';
-    contextMenu.style.transition = 'none'; // 暂时禁用过渡，以便获取尺寸
-    
-    const menuWidth = contextMenu.offsetWidth;
-    const menuHeight = contextMenu.offsetHeight;
-    
-    // 调整位置
-    let positionX = x;
-    let positionY = y;
-    
-    // 检查是否有有效事件，如果没有则使用选区位置
-    if (!event && hasSelection) {
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        // 使用选区末尾或中心作为参考
-        positionX = rect.right + 5;
-        positionY = rect.top + 5;
+        this.showContextMenu(x, y, event);
       }
     }
     
-    // 当有选中文本时，确保菜单定位在选中内容的附近
-    if (hasSelection) {
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        
-        // 检查点击位置是否在选区内
-        let clickInSelection = false;
-        if (event instanceof MouseEvent) {
-          // 鼠标事件
-          clickInSelection = 
-            event.clientX >= rect.left && 
-            event.clientX <= rect.right && 
-            event.clientY >= rect.top && 
-            event.clientY <= rect.bottom;
-        } else if (event instanceof TouchEvent) {
-          // 触摸事件
-          const touch = event.touches[0] || event.changedTouches[0];
-          if (touch) {
-            clickInSelection = 
-              touch.clientX >= rect.left && 
-              touch.clientX <= rect.right && 
-              touch.clientY >= rect.top && 
-              touch.clientY <= rect.bottom;
-          }
-        } else if (!event) {
-          // 无事件，可能是文本选择后自动显示
-          clickInSelection = true;
-        }
-        
-        // 如果点击位置在选区内或无事件，调整菜单位置以避免遮挡选中内容
-        if (clickInSelection) {
-          // 尝试将菜单定位在选区的右侧或下方
-          if (rect.right + menuWidth + 10 <= windowWidth) {
-            positionX = rect.right + 10;
-            positionY = rect.top;
-          } else if (rect.bottom + menuHeight + 10 <= windowHeight) {
-            positionX = rect.left;
-            positionY = rect.bottom + 10;
-          } else if (rect.left - menuWidth - 10 >= 0) {
-            positionX = rect.left - menuWidth - 10;
-            positionY = rect.top;
-          } else if (rect.top - menuHeight - 10 >= 0) {
-            positionX = rect.left;
-            positionY = rect.top - menuHeight - 10;
-          } else {
-            // 如果所有方向都不够空间，尝试将菜单定位在选区中心附近
-            positionX = Math.min(rect.right, windowWidth - menuWidth - 10);
-            positionY = Math.min(rect.bottom, windowHeight - menuHeight - 10);
-          }
-        }
-      }
-    }
-    
-    // 避免菜单超出视口右侧
-    if (positionX + menuWidth > windowWidth) {
-      positionX = windowWidth - menuWidth - 10;
-    }
-    
-    // 避免菜单超出视口左侧
-    if (positionX < 10) {
-      positionX = 10;
-    }
-    
-    // 避免菜单超出视口底部
-    if (positionY + menuHeight > windowHeight) {
-      positionY = windowHeight - menuHeight - 10;
-    }
-    
-    // 避免菜单超出视口顶部
-    if (positionY < 10) {
-      positionY = 10;
-    }
-    
-    // 确保菜单位置在视口内
-    positionX = Math.max(10, Math.min(positionX, windowWidth - menuWidth - 10));
-    positionY = Math.max(10, Math.min(positionY, windowHeight - menuHeight - 10));
-    
-    // 设置菜单位置
-    contextMenu.style.left = `${positionX}px`;
-    contextMenu.style.top = `${positionY}px`;
-    
-    // 添加动画效果
-    requestAnimationFrame(() => {
-      contextMenu.style.transition = 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-      contextMenu.style.opacity = '1';
-      contextMenu.style.transform = 'scale(1)';
+    // 优化文本选择
+    private optimizeTextSelection(selection: Selection) {
+      if (!selection) return;
       
-      // 动画完成后重置过渡属性
-      setTimeout(() => {
-        contextMenu.style.transition = '';
-      }, 300);
-    });
-    
-    // 性能测试
-    const endTime = performance.now();
-    const executionTime = endTime - startTime;
-    if (executionTime > 16) {
-      console.warn(`Context menu positioning took ${executionTime.toFixed(2)}ms, exceeding 16ms threshold`);
-    }
-  }
-
-  // 隐藏右键菜单
-  function hideContextMenu() {
-    if (!contextMenu || contextMenu.style.display === 'none') return;
-    
-    // 添加淡出动画
-    contextMenu.style.transition = 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-    contextMenu.style.opacity = '0';
-    contextMenu.style.transform = 'scale(0.9)';
-    
-    setTimeout(() => {
-      contextMenu.style.display = 'none';
-      // 重置过渡属性
-      contextMenu.style.transition = '';
-    }, 300);
-  }
-
-  // 菜单切换动画
-  function switchContextMenu(x: number, y: number, event?: MouseEvent | TouchEvent) {
-    if (!contextMenu) return;
-    
-    // 获取当前菜单位置和尺寸
-    const currentRect = contextMenu.getBoundingClientRect();
-    
-    // 计算新菜单位置
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-    
-    // 存储新的选中文本状态
-    const hasSelection = selectedText.length > 0;
-    
-    // 计算新菜单位置（考虑视口边界）
-    let newX = x;
-    let newY = y;
-    
-    // 先计算临时菜单位置以获取尺寸
-    // 创建临时元素来计算新菜单的尺寸
-    const tempMenu = document.createElement('div');
-    tempMenu.style.position = 'fixed';
-    tempMenu.style.visibility = 'hidden';
-    tempMenu.style.opacity = '0';
-    tempMenu.className = 'custom-context-menu';
-    tempMenu.innerHTML = contextMenu.innerHTML;
-    document.body.appendChild(tempMenu);
-    
-    // 根据新的选中文本状态更新临时菜单项
-    const tempGeneralItems = tempMenu.querySelectorAll('.context-menu-item.general');
-    const tempTextSelectionItems = tempMenu.querySelectorAll('.context-menu-item.text-selection');
-    
-    tempGeneralItems.forEach((item) => {
-      if (item.getAttribute('data-action') === 'copy-url' && hasSelection) {
-        (item as HTMLElement).style.display = 'none';
-      } else {
-        (item as HTMLElement).style.display = 'flex';
+      const selectedText = selection.toString().trim();
+      
+      if (selectedText.length > this.MAX_SELECTION_LENGTH * 2) {
+        this.showFeedback('选择内容过长，已自动调整');
       }
-    });
-    
-    tempTextSelectionItems.forEach((item) => {
-      (item as HTMLElement).style.display = hasSelection ? 'flex' : 'none';
-    });
-    
-    // 获取新尺寸
-    const newWidth = tempMenu.offsetWidth;
-    const newHeight = tempMenu.offsetHeight;
-    
-    // 移除临时元素
-    document.body.removeChild(tempMenu);
-    
-    // 调整新菜单位置以避免超出视口
-    // 避免超出视口右侧
-    if (newX + newWidth > windowWidth) {
-      newX = windowWidth - newWidth - 10;
     }
     
-    // 避免超出视口左侧
-    if (newX < 10) {
-      newX = 10;
+    // 显示右键菜单
+    private showContextMenu(x: number, y: number, event?: MouseEvent | TouchEvent) {
+      if (!this.contextMenu) return;
+      
+      // 记录开始时间，用于性能测试
+      const startTime = performance.now();
+      
+      // 根据是否有选中文本显示不同的菜单项
+      const hasSelection = this.selectedText.length > 0;
+      
+      // 显示或隐藏菜单项
+      this.updateMenuItems(hasSelection);
+      
+      // 计算菜单位置
+      const { positionX, positionY, menuWidth, menuHeight } = this.calculateMenuPosition(x, y, event);
+      
+      // 设置菜单位置
+      this.contextMenu.style.left = `${positionX}px`;
+      this.contextMenu.style.top = `${positionY}px`;
+      
+      // 添加动画效果
+      this.animateMenuIn();
+      
+      // 性能测试
+      const endTime = performance.now();
+      const executionTime = endTime - startTime;
+      if (executionTime > 16) {
+        console.warn(`Context menu positioning took ${executionTime.toFixed(2)}ms, exceeding 16ms threshold`);
+      }
     }
     
-    // 避免超出视口底部
-    if (newY + newHeight > windowHeight) {
-      newY = windowHeight - newHeight - 10;
+    // 计算菜单位置
+    private calculateMenuPosition(x: number, y: number, event?: MouseEvent | TouchEvent): { positionX: number; positionY: number; menuWidth: number; menuHeight: number } {
+      if (!this.contextMenu) return { positionX: x, positionY: y, menuWidth: 0, menuHeight: 0 };
+      
+      // 先显示菜单以获取正确的尺寸
+      this.contextMenu.style.display = 'block';
+      this.contextMenu.style.opacity = '0';
+      this.contextMenu.style.transform = 'scale(0.9)';
+      this.contextMenu.style.transition = 'none';
+      
+      const menuWidth = this.contextMenu.offsetWidth;
+      const menuHeight = this.contextMenu.offsetHeight;
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      
+      let positionX = x;
+      let positionY = y;
+      
+      // 检查是否有有效事件，如果没有则使用选区位置
+      if (!event && this.selectedText.length > 0) {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          const rect = range.getBoundingClientRect();
+          positionX = rect.right + 5;
+          positionY = rect.top + 5;
+        }
+      }
+      
+      // 当有选中文本时，确保菜单定位在选中内容的附近
+      if (this.selectedText.length > 0) {
+        const adjustedPosition = this.adjustPositionForSelection(positionX, positionY, menuWidth, menuHeight, windowWidth, windowHeight, event);
+        positionX = adjustedPosition.x;
+        positionY = adjustedPosition.y;
+      }
+      
+      // 确保菜单位置在视口内
+      positionX = this.clampPosition(positionX, 0, windowWidth - menuWidth - this.MENU_PADDING);
+      positionY = this.clampPosition(positionY, 0, windowHeight - menuHeight - this.MENU_PADDING);
+      
+      // 再次验证，确保菜单不会超出视口
+      if (positionX + menuWidth > windowWidth) {
+        positionX = windowWidth - menuWidth - this.MENU_PADDING;
+      }
+      if (positionY + menuHeight > windowHeight) {
+        positionY = windowHeight - menuHeight - this.MENU_PADDING;
+      }
+      if (positionX < this.MENU_PADDING) {
+        positionX = this.MENU_PADDING;
+      }
+      if (positionY < this.MENU_PADDING) {
+        positionY = this.MENU_PADDING;
+      }
+      
+      return { positionX, positionY, menuWidth, menuHeight };
     }
     
-    // 避免超出视口顶部
-    if (newY < 10) {
-      newY = 10;
+    // 调整选中文本时的菜单位置
+    private adjustPositionForSelection(x: number, y: number, menuWidth: number, menuHeight: number, windowWidth: number, windowHeight: number, event?: MouseEvent | TouchEvent): { x: number; y: number } {
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return { x, y };
+      
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      
+      // 检查是否有有效的事件位置
+      let hasValidEventPosition = false;
+      if (event instanceof MouseEvent) {
+        hasValidEventPosition = true;
+      } else if (event instanceof TouchEvent) {
+        const touch = event.touches[0] || event.changedTouches[0];
+        hasValidEventPosition = !!touch;
+      }
+      
+      // 如果有有效的事件位置，只在需要时调整
+      if (hasValidEventPosition) {
+        const needsAdjustment = x + menuWidth > windowWidth || x < this.MENU_PADDING || 
+                               y + menuHeight > windowHeight || y < this.MENU_PADDING;
+        
+        if (!needsAdjustment) {
+          return { x, y };
+        }
+      }
+      
+      // 尝试将菜单定位在选区的不同方向
+      if (rect.right + menuWidth + this.MENU_PADDING <= windowWidth) {
+        return { x: rect.right + this.MENU_PADDING, y: rect.top };
+      } else if (rect.bottom + menuHeight + this.MENU_PADDING <= windowHeight) {
+        return { x: rect.left, y: rect.bottom + this.MENU_PADDING };
+      } else if (rect.left - menuWidth - this.MENU_PADDING >= 0) {
+        return { x: rect.left - menuWidth - this.MENU_PADDING, y: rect.top };
+      } else if (rect.top - menuHeight - this.MENU_PADDING >= 0) {
+        return { x: rect.left, y: rect.top - menuHeight - this.MENU_PADDING };
+      } else {
+        // 如果所有方向都不够空间，尝试将菜单定位在选区中心附近
+        return {
+          x: Math.min(rect.right, windowWidth - menuWidth - this.MENU_PADDING),
+          y: Math.min(rect.bottom, windowHeight - menuHeight - this.MENU_PADDING)
+        };
+      }
     }
     
-    // 确保位置在视口内
-    newX = Math.max(10, Math.min(newX, windowWidth - newWidth - 10));
-    newY = Math.max(10, Math.min(newY, windowHeight - newHeight - 10));
+    // 限制位置在指定范围内
+    private clampPosition(value: number, min: number, max: number): number {
+      return Math.max(min + this.MENU_PADDING, Math.min(value, max));
+    }
     
-    // 开始切换动画
-    // 1. 缩小并淡出当前菜单
-    contextMenu.style.transition = 'opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
-    contextMenu.style.opacity = '0';
-    contextMenu.style.transform = 'scale(0.8)';
-    
-    // 2. 短暂延迟后，移动并淡入新菜单
-    setTimeout(() => {
-      // 根据新的选中文本状态更新菜单项
-      const generalItems = contextMenu.querySelectorAll('.context-menu-item.general');
-      const textSelectionItems = contextMenu.querySelectorAll('.context-menu-item.text-selection');
+    // 更新菜单项显示状态
+    private updateMenuItems(hasSelection: boolean) {
+      if (!this.contextMenu) return;
+      
+      const generalItems = this.contextMenu.querySelectorAll('.context-menu-item.general');
+      const textSelectionItems = this.contextMenu.querySelectorAll('.context-menu-item.text-selection');
       
       generalItems.forEach((item) => {
         if (item.getAttribute('data-action') === 'copy-url' && hasSelection) {
@@ -513,221 +433,281 @@ import "../styles/right-click-menu.css";
       textSelectionItems.forEach((item) => {
         (item as HTMLElement).style.display = hasSelection ? 'flex' : 'none';
       });
-      
-      // 设置新位置
-      contextMenu.style.left = `${newX}px`;
-      contextMenu.style.top = `${newY}px`;
-      
-      // 重置过渡并显示新菜单
-      contextMenu.style.transition = 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-      contextMenu.style.opacity = '1';
-      contextMenu.style.transform = 'scale(1)';
-      
-      // 3. 动画完成后重置过渡属性
-      setTimeout(() => {
-        contextMenu.style.transition = '';
-      }, 300);
-    }, 200);
-  }
-
-  // 处理菜单点击事件
-  if (contextMenu) {
-    contextMenu.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      if (target) {
-        const menuItem = target.closest('.context-menu-item');
-        if (menuItem) {
-          const action = menuItem.getAttribute('data-action');
-          handleMenuAction(action);
-          hideContextMenu();
-        }
-      }
-    });
-  }
-
-  // 处理菜单操作
-  function handleMenuAction(action: string | null) {
-    if (!action) return;
+    }
     
-    switch (action) {
-      case 'refresh':
-        // 刷新页面
-        window.location.reload();
-        break;
-      case 'copy':
-        // 复制选中的文本
-        if (selectedText) {
-          navigator.clipboard.writeText(selectedText).then(() => {
-            showFeedback('复制成功');
-          }).catch(err => {
-            console.error('复制失败:', err);
-          });
+    // 菜单淡入动画
+    private animateMenuIn() {
+      if (!this.contextMenu) return;
+      
+      requestAnimationFrame(() => {
+        this.contextMenu!.style.transition = `opacity ${this.ANIMATION_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1), transform ${this.ANIMATION_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+        this.contextMenu!.style.opacity = '1';
+        this.contextMenu!.style.transform = 'scale(1)';
+        
+        // 动画完成后重置过渡属性
+        setTimeout(() => {
+          if (this.contextMenu) {
+            this.contextMenu.style.transition = '';
+          }
+        }, this.ANIMATION_DURATION);
+      });
+    }
+    
+    // 隐藏右键菜单
+    private hideContextMenu() {
+      if (!this.contextMenu || this.contextMenu.style.display === 'none') return;
+      
+      // 添加淡出动画
+      this.contextMenu.style.transition = `opacity ${this.ANIMATION_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1), transform ${this.ANIMATION_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+      this.contextMenu.style.opacity = '0';
+      this.contextMenu.style.transform = 'scale(0.9)';
+      
+      setTimeout(() => {
+        if (this.contextMenu) {
+          this.contextMenu.style.display = 'none';
+          this.contextMenu.style.transition = '';
         }
-        break;
-      case 'copy-url':
-        // 复制当前URL
-        navigator.clipboard.writeText(window.location.href).then(() => {
-          showFeedback('链接已复制');
-        }).catch(err => {
-          console.error('复制链接失败:', err);
-        });
-        break;
-      case 'paste':
-        // 粘贴内容到当前活动元素或右键点击的目标元素
-        navigator.clipboard.readText().then(text => {
-          let targetElement: Element | null = document.activeElement;
-          
-          // 如果没有活动元素，检查右键点击的目标元素
-          if (!targetElement || !(targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA')) {
-            // 检查右键点击的目标元素是否是输入元素，或者是否在输入元素内
-            if (rightClickTarget) {
-              // 检查目标元素本身是否是输入元素
-              if (rightClickTarget.tagName === 'INPUT' || rightClickTarget.tagName === 'TEXTAREA') {
-                targetElement = rightClickTarget;
-              } else {
-                // 检查目标元素的父元素是否是输入元素
-                const parentInput = rightClickTarget.closest('input, textarea');
-                if (parentInput) {
-                  targetElement = parentInput;
-                }
+      }, this.ANIMATION_DURATION);
+    }
+    
+    // 菜单切换动画
+    private switchContextMenu(x: number, y: number, event?: MouseEvent | TouchEvent) {
+      if (!this.contextMenu) return;
+      
+      // 存储新的选中文本状态
+      const hasSelection = this.selectedText.length > 0;
+      
+      // 计算新菜单位置（使用当前菜单尺寸作为估算）
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      const currentMenuWidth = this.contextMenu.offsetWidth;
+      const currentMenuHeight = this.contextMenu.offsetHeight;
+      
+      let newX = x;
+      let newY = y;
+      
+      // 当有选中文本时，确保菜单定位在选中内容的附近
+      if (hasSelection) {
+        const adjustedPosition = this.adjustPositionForSelection(newX, newY, currentMenuWidth, currentMenuHeight, windowWidth, windowHeight, event);
+        newX = adjustedPosition.x;
+        newY = adjustedPosition.y;
+      }
+      
+      // 确保位置在视口内
+      newX = this.clampPosition(newX, 0, windowWidth - currentMenuWidth - this.MENU_PADDING);
+      newY = this.clampPosition(newY, 0, windowHeight - currentMenuHeight - this.MENU_PADDING);
+      
+      // 开始切换动画
+      // 1. 缩小并淡出当前菜单
+      this.contextMenu.style.transition = 'opacity 200ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms cubic-bezier(0.4, 0, 0.2, 1)';
+      this.contextMenu.style.opacity = '0';
+      this.contextMenu.style.transform = 'scale(0.8)';
+      
+      // 2. 短暂延迟后，移动并淡入新菜单
+      setTimeout(() => {
+        // 更新菜单项
+        this.updateMenuItems(hasSelection);
+        
+        // 再次验证边界
+        const finalMenuWidth = this.contextMenu!.offsetWidth;
+        const finalMenuHeight = this.contextMenu!.offsetHeight;
+        let finalX = newX;
+        let finalY = newY;
+        
+        // 确保位置在视口内
+        if (finalX + finalMenuWidth > windowWidth) {
+          finalX = windowWidth - finalMenuWidth - this.MENU_PADDING;
+        }
+        if (finalY + finalMenuHeight > windowHeight) {
+          finalY = windowHeight - finalMenuHeight - this.MENU_PADDING;
+        }
+        if (finalX < this.MENU_PADDING) {
+          finalX = this.MENU_PADDING;
+        }
+        if (finalY < this.MENU_PADDING) {
+          finalY = this.MENU_PADDING;
+        }
+        
+        // 设置新位置
+        this.contextMenu!.style.left = `${finalX}px`;
+        this.contextMenu!.style.top = `${finalY}px`;
+        
+        // 重置过渡并显示新菜单
+        this.contextMenu!.style.transition = `opacity ${this.ANIMATION_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1), transform ${this.ANIMATION_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+        this.contextMenu!.style.opacity = '1';
+        this.contextMenu!.style.transform = 'scale(1)';
+        
+        // 3. 动画完成后重置过渡属性
+        setTimeout(() => {
+          if (this.contextMenu) {
+            this.contextMenu.style.transition = '';
+          }
+        }, this.ANIMATION_DURATION);
+      }, 200);
+    }
+    
+    // 处理菜单点击事件
+    private handleMenuClick(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      if (!target) return;
+      
+      const menuItem = target.closest('.context-menu-item');
+      if (menuItem) {
+        const action = menuItem.getAttribute('data-action');
+        this.handleMenuAction(action);
+        this.hideContextMenu();
+      }
+    }
+    
+    // 处理菜单操作
+    private handleMenuAction(action: string | null) {
+      if (!action) return;
+      
+      switch (action) {
+        case 'refresh':
+          window.location.reload();
+          break;
+        case 'copy':
+          if (this.selectedText) {
+            navigator.clipboard.writeText(this.selectedText).then(() => {
+              this.showFeedback('复制成功');
+            }).catch(err => {
+              console.error('复制失败:', err);
+            });
+          }
+          break;
+        case 'copy-url':
+          navigator.clipboard.writeText(window.location.href).then(() => {
+            this.showFeedback('链接已复制');
+          }).catch(err => {
+            console.error('复制链接失败:', err);
+          });
+          break;
+        case 'paste':
+          this.handlePaste();
+          break;
+        case 'search':
+          if (this.selectedText) {
+            const searchUrl = `https://www.bing.com/search?q=${encodeURIComponent(this.selectedText)}`;
+            window.open(searchUrl, '_blank');
+          }
+          break;
+        case 'translate':
+          if (this.selectedText) {
+            const translateUrl = `https://cn.bing.com/translator/?from=auto&to=zh-Hans&text=${encodeURIComponent(this.selectedText)}`;
+            window.open(translateUrl, '_blank');
+          }
+          break;
+        case 'share':
+          if (this.selectedText) {
+            this.handleShare(this.selectedText);
+          }
+          break;
+        default:
+          break;
+      }
+    }
+    
+    // 处理粘贴操作
+    private handlePaste() {
+      navigator.clipboard.readText().then(text => {
+        let targetElement: Element | null = document.activeElement;
+        
+        // 如果没有活动元素，检查右键点击的目标元素
+        if (!targetElement || !(targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA')) {
+          if (this.rightClickTarget) {
+            if (this.rightClickTarget.tagName === 'INPUT' || this.rightClickTarget.tagName === 'TEXTAREA') {
+              targetElement = this.rightClickTarget;
+            } else {
+              const parentInput = this.rightClickTarget.closest('input, textarea');
+              if (parentInput) {
+                targetElement = parentInput;
               }
             }
           }
-          
-          // 粘贴到目标输入元素
-          if (targetElement && (targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA')) {
-            const inputElement = targetElement as HTMLInputElement | HTMLTextAreaElement;
-            inputElement.value += text;
-            // 聚焦到输入元素，确保用户可以继续编辑
-            inputElement.focus();
-            showFeedback('粘贴成功');
-          } else {
-            // 如果没有可粘贴的输入元素，可以考虑其他处理方式
-            console.log('没有可粘贴的输入元素');
-          }
+        }
+        
+        // 粘贴到目标输入元素
+        if (targetElement && (targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA')) {
+          const inputElement = targetElement as HTMLInputElement | HTMLTextAreaElement;
+          inputElement.value += text;
+          inputElement.focus();
+          this.showFeedback('粘贴成功');
+        }
+      }).catch(err => {
+        console.error('粘贴失败:', err);
+      });
+    }
+    
+    // 处理分享操作
+    private handleShare(text: string) {
+      if (navigator.share) {
+        // 使用Web Share API
+        navigator.share({
+          title: '分享文本',
+          text: text,
+          url: window.location.href
         }).catch(err => {
-          console.error('粘贴失败:', err);
+          console.error('分享失败:', err);
+          this.fallbackShare(text);
         });
-        break;
-      case 'search':
-        // 搜索选中文本
-        if (selectedText) {
-          const searchUrl = `https://www.bing.com/search?q=${encodeURIComponent(selectedText)}`;
-          window.open(searchUrl, '_blank');
-        }
-        break;
-      case 'translate':
-        // 翻译选中文本
-        if (selectedText) {
-          const translateUrl = `https://cn.bing.com/translator/?from=auto&to=zh-Hans&text=${encodeURIComponent(selectedText)}`;
-          window.open(translateUrl, '_blank');
-        }
-        break;
-      case 'share':
-        // 分享选中文本
-        if (selectedText) {
-          if (navigator.share) {
-            // 使用Web Share API
-            navigator.share({
-              title: '分享文本',
-              text: selectedText,
-              url: window.location.href
-            }).catch(err => {
-              console.error('分享失败:', err);
-              // 降级方案
-              fallbackShare(selectedText);
-            });
-          } else {
-            // 降级方案：复制到剪贴板
-            fallbackShare(selectedText);
-          }
-        }
-        break;
-      default:
-        break;
-    }
-  }
-  
-  // 分享功能的降级方案
-  function fallbackShare(text: string) {
-    const shareText = `${text}\n\n来自: ${window.location.href}`;
-    navigator.clipboard.writeText(shareText).then(() => {
-      showFeedback('已复制到剪贴板');
-    }).catch(err => {
-      console.error('复制失败:', err);
-    });
-  }
-
-  // 显示操作反馈弹窗
-  function showFeedback(message: string) {
-    if (!feedbackElement) return;
-    
-    // 设置反馈信息
-    const messageElement = feedbackElement.querySelector('.feedback-message');
-    if (messageElement) {
-      messageElement.textContent = message;
+      } else {
+        // 降级方案
+        this.fallbackShare(text);
+      }
     }
     
-    // 重置动画和显示状态
-    feedbackElement.style.display = 'flex';
-    feedbackElement.style.animation = 'none';
-    feedbackElement.offsetHeight; // 触发重排
-    feedbackElement.style.animation = 'feedbackFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards, feedbackFadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) 2.7s forwards';
-    
-    // 3秒后隐藏弹窗
-    setTimeout(() => {
-      feedbackElement.style.display = 'none';
-    }, 3000);
-  }
-
-  // 监听键盘事件，按ESC键关闭菜单
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      hideContextMenu();
+    // 分享功能的降级方案
+    private fallbackShare(text: string) {
+      const shareText = `${text}\n\n来自: ${window.location.href}`;
+      navigator.clipboard.writeText(shareText).then(() => {
+        this.showFeedback('已复制到剪贴板');
+      }).catch(err => {
+        console.error('复制失败:', err);
+      });
     }
-  });
-
-  // 监听页面滚动事件，滚动时关闭菜单
-  window.addEventListener('scroll', () => {
-    hideContextMenu();
-  });
-
-  // 监听窗口尺寸变化事件，调整菜单位置
-  window.addEventListener('resize', () => {
-    // 窗口尺寸变化时关闭菜单，以避免位置计算错误
-    hideContextMenu();
-  });
-
-  // 触摸滑动关闭菜单
-  let touchStartXForSwipe = 0;
-  let touchStartYForSwipe = 0;
-  const SWIPE_THRESHOLD = 50;
-
-  // 监听菜单的触摸开始事件
-  if (contextMenu) {
-    contextMenu.addEventListener('touchstart', (e) => {
-      const touch = e.touches[0];
-      touchStartXForSwipe = touch.clientX;
-      touchStartYForSwipe = touch.clientY;
-    });
-
-    // 监听菜单的触摸移动事件
-    contextMenu.addEventListener('touchmove', (e) => {
+    
+    // 显示操作反馈弹窗
+    private showFeedback(message: string) {
+      if (!this.feedbackElement) return;
+      
+      // 设置反馈信息
+      const messageElement = this.feedbackElement.querySelector('.feedback-message');
+      if (messageElement) {
+        messageElement.textContent = message;
+      }
+      
+      // 重置动画和显示状态
+      this.feedbackElement.style.display = 'flex';
+      this.feedbackElement.style.animation = 'none';
+      this.feedbackElement.offsetHeight; // 触发重排
+      this.feedbackElement.style.animation = `feedbackFadeIn ${this.ANIMATION_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1) forwards, feedbackFadeOut ${this.ANIMATION_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1) ${3000 - this.ANIMATION_DURATION}ms forwards`;
+      
+      // 3秒后隐藏弹窗
+      setTimeout(() => {
+        if (this.feedbackElement) {
+          this.feedbackElement.style.display = 'none';
+        }
+      }, 3000);
+    }
+    
+    // 处理菜单触摸移动事件（滑动关闭）
+    private handleMenuTouchMove(e: TouchEvent) {
       const touch = e.touches[0];
       const touchEndX = touch.clientX;
       const touchEndY = touch.clientY;
-      const deltaX = touchEndX - touchStartXForSwipe;
-      const deltaY = touchEndY - touchStartYForSwipe;
+      const deltaX = touchEndX - this.touchStartXForSwipe;
+      const deltaY = touchEndY - this.touchStartYForSwipe;
       const swipeDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
       // 如果滑动距离超过阈值，关闭菜单
-      if (swipeDistance > SWIPE_THRESHOLD) {
-        hideContextMenu();
+      if (swipeDistance > this.SWIPE_THRESHOLD) {
+        this.hideContextMenu();
       }
-    });
-
-    // 优化移动端触摸反馈，添加触摸时的视觉效果
-    contextMenu.addEventListener('touchstart', (e) => {
+    }
+    
+    // 处理菜单项触摸开始事件
+    private handleMenuItemTouchStart(e: TouchEvent) {
       const target = e.target as HTMLElement;
       const menuItem = target.closest('.context-menu-item') as HTMLElement | null;
       if (menuItem) {
@@ -735,9 +715,10 @@ import "../styles/right-click-menu.css";
         menuItem.style.transform = 'scale(0.98)';
         menuItem.style.transition = 'transform 0.1s ease';
       }
-    });
-
-    contextMenu.addEventListener('touchend', (e) => {
+    }
+    
+    // 处理菜单项触摸结束事件
+    private handleMenuItemTouchEnd(e: TouchEvent) {
       const target = e.target as HTMLElement;
       const menuItem = target.closest('.context-menu-item') as HTMLElement | null;
       if (menuItem) {
@@ -745,10 +726,10 @@ import "../styles/right-click-menu.css";
         menuItem.style.transform = '';
         menuItem.style.transition = '';
       }
-    });
-
-    // 优化触摸取消事件处理
-    contextMenu.addEventListener('touchcancel', (e) => {
+    }
+    
+    // 处理菜单项触摸取消事件
+    private handleMenuItemTouchCancel(e: TouchEvent) {
       const target = e.target as HTMLElement;
       const menuItem = target.closest('.context-menu-item') as HTMLElement | null;
       if (menuItem) {
@@ -756,6 +737,9 @@ import "../styles/right-click-menu.css";
         menuItem.style.transform = '';
         menuItem.style.transition = '';
       }
-    });
+    }
   }
+  
+  // 初始化右键菜单
+  new CustomRightClickMenu();
 </script>
