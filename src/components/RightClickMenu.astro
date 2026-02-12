@@ -786,6 +786,12 @@ import "../styles/right-click-menu.css";
         // 移除触摸反馈效果
         menuItem.style.transform = '';
         menuItem.style.transition = '';
+        
+        // 处理菜单按钮的点击操作
+        // 在移动设备上，触摸结束事件相当于点击事件
+        const action = menuItem.getAttribute('data-action');
+        this.handleMenuAction(action);
+        this.hideContextMenu();
       }
     }
     
