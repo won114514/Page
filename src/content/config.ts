@@ -6,9 +6,6 @@ const postsCollection = defineCollection({
     date: z.date(),
     excerpt: z.string().optional(),
     draft: z.boolean().default(false),
-    encrypt: z.boolean().default(false),
-    aes_key_hint: z.string().optional(),
-    aes_key: z.string().optional(),
   }),
 });
 

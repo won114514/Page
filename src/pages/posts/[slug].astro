@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
-import { encrypt } from '../../utils/crypto';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts', ({ data }) => {
@@ -34,28 +33,7 @@ const countWords = (content: string) => {
 };
 
 const { post } = Astro.props;
-const isEncrypted = post.data.encrypt === true;
-const encryptionHint = post.data.aes_key_hint;
-
-// 使用文章 front-matter 中定义的密钥来加密内容
-// 如果没有定义，则使用默认密钥
-const ENCRYPTION_KEY = post.data.aes_key || 'default-key';
-
-// 渲染并加密文章内容
-let encryptedContent = '';
-if (isEncrypted) {
-  // 直接加密文章的原始Markdown内容
-  // 这样构建产物中只会包含加密后的内容，不会包含明文
-  encryptedContent = encrypt(post.body, ENCRYPTION_KEY);
-}
-
-// 对于加密文章，我们不渲染Content组件
-// 这样明文内容就不会出现在构建产物中
-let Content = null;
-if (!isEncrypted) {
-  const rendered = await post.render();
-  Content = rendered.Content;
-}
+const { Content } = await post.render();
 ---
 
 <BaseLayout title={post.data.title}>
@@ -64,32 +42,8 @@ if (!isEncrypted) {
     <div class="post-meta">
       {new Date(post.data.date).toLocaleDateString('zh-CN')} · {countWords(post.body)} 字
     </div>
-    
-    {isEncrypted ? (
-      <div id="encrypted-content">
-        <div class="encryption-container">
-          <h2>🔒 文章已加密</h2>
-          {encryptionHint && (
-            <p class="encryption-hint">{encryptionHint}</p>
-          )}
-          <form id="decryption-form">
-            <input 
-              type="password" 
-              id="decryption-key" 
-              placeholder="请输入解密密码"
-              required
-            />
-            <button type="submit">解密</button>
-          </form>
-          <p id="decryption-error" class="error-message"></p>
-        </div>
-        <div id="decrypted-content" style="display: none;">
-          <!-- 解密后的内容将通过 JavaScript 动态插入 -->
-        </div>
-      </div>
-    ) : (
-      <Content />
-    )}
+    <Content />
+  </article>
   
   <!-- Back to Top Button -->
   <button aria-label="Back to Top" class="back-to-top">
@@ -149,87 +103,6 @@ if (!isEncrypted) {
       transform: translateY(-3px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
-    
-    /* 加密相关样式 */
-    .encryption-container {
-      background-color: var(--bg-color);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 2rem;
-      margin: 2rem 0;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-    
-    .encryption-container h2 {
-      margin-top: 0;
-      margin-bottom: 1.5rem;
-      color: var(--text-color);
-    }
-    
-    .encryption-hint {
-      color: var(--text-color-secondary);
-      margin-bottom: 1.5rem;
-      font-style: italic;
-    }
-    
-    #decryption-form {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      max-width: 400px;
-      margin: 0 auto;
-    }
-    
-    #decryption-key {
-      padding: 0.75rem 1rem;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      font-size: 1rem;
-    }
-    
-    #decryption-key:focus {
-      outline: none;
-      border-color: var(--accent-color);
-      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-    }
-    
-    #decryption-form button {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 4px;
-      background-color: var(--accent-color);
-      color: var(--bg-color);
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    #decryption-form button:hover {
-      background-color: var(--accent-color-hover);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    
-    .error-message {
-      color: #dc3545;
-      margin-top: 1rem;
-      font-size: 0.9rem;
-    }
-    
-    /* 响应式设计 */
-    @media (max-width: 600px) {
-      .encryption-container {
-        padding: 1.5rem;
-      }
-      
-      #decryption-form {
-        max-width: 100%;
-      }
-    }
   </style>
 
   <script>
@@ -258,143 +131,4 @@ if (!isEncrypted) {
       backToTopButton.style.display = 'none';
     }
   </script>
-
-  {isEncrypted && (
-    <>
-      <!-- 存储加密内容的隐藏元素 -->
-      <div id="encrypted-content-storage" style="display: none;">{encryptedContent}</div>
-      
-      <script>
-        // 使用立即执行函数表达式 (IIFE) 封装脚本，避免变量名冲突
-        (function() {
-          // 解密功能
-          const decryptionForm = document.getElementById('decryption-form');
-          const decryptionKey = document.getElementById('decryption-key') as HTMLInputElement | null;
-          const decryptionError = document.getElementById('decryption-error');
-          const encryptedContainer = document.querySelector('.encryption-container') as HTMLElement | null;
-          const decryptedContent = document.getElementById('decrypted-content') as HTMLElement | null;
-          
-          // 从隐藏元素获取加密的内容
-          const encryptedContentStorage = document.getElementById('encrypted-content-storage');
-          const encryptedContentFromServer = encryptedContentStorage ? encryptedContentStorage.textContent : '';
-          
-          if (decryptionForm && decryptionKey && decryptionError && encryptedContainer && decryptedContent && encryptedContentFromServer) {
-            decryptionForm.addEventListener('submit', async (e) => {
-              e.preventDefault();
-              
-              const password = decryptionKey.value.trim();
-              if (!password) {
-                decryptionError.textContent = '请输入密码';
-                return;
-              }
-              
-              try {
-                // 使用 Web Crypto API 进行解密
-                const decryptedText = await decryptWithWebCrypto(encryptedContentFromServer, password);
-                
-                // 验证解密是否成功（简单检查）
-                if (!decryptedText || decryptedText.length < 10) {
-                  throw new Error('解密失败，请检查密码是否正确');
-                }
-                
-                // 解析 Markdown 并显示内容
-                decryptedContent.innerHTML = await markdownToHtml(decryptedText);
-                
-                // 显示解密后的内容
-                encryptedContainer.style.display = 'none';
-                decryptedContent.style.display = 'block';
-                decryptionError.textContent = '';
-                
-                // 触发内容进入动画
-                decryptedContent.style.opacity = '0';
-                decryptedContent.style.transform = 'translateY(20px)';
-                
-                requestAnimationFrame(() => {
-                  decryptedContent.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-                  decryptedContent.style.opacity = '1';
-                  decryptedContent.style.transform = 'translateY(0)';
-                });
-                
-              } catch (error) {
-                decryptionError.textContent = '解密失败，请检查密码是否正确';
-                console.error('解密错误:', error);
-              }
-            });
-          }
-          
-          // Web Crypto API 解密函数
-          async function decryptWithWebCrypto(encryptedText: string, password: string): Promise<string> {
-            try {
-              const [ivBase64, encryptedData] = encryptedText.split(':');
-              const iv = new Uint8Array(atob(ivBase64).split('').map(c => c.charCodeAt(0)));
-              const encrypted = new Uint8Array(atob(encryptedData).split('').map(c => c.charCodeAt(0)));
-              
-              // 从密码派生密钥
-              const keyMaterial = await crypto.subtle.importKey(
-                'raw',
-                new TextEncoder().encode(password),
-                { name: 'PBKDF2' },
-                false,
-                ['deriveKey']
-              );
-              
-              const key = await crypto.subtle.deriveKey(
-                {
-                  name: 'PBKDF2',
-                  salt: new TextEncoder().encode('won-blog-salt'),
-                  iterations: 100000,
-                  hash: 'SHA-256'
-                },
-                keyMaterial,
-                {
-                  name: 'AES-CBC',
-                  length: 256
-                },
-                false,
-                ['decrypt']
-              );
-              
-              // 解密
-              const decrypted = await crypto.subtle.decrypt(
-                {
-                  name: 'AES-CBC',
-                  iv: iv
-                },
-                key,
-                encrypted
-              );
-              
-              return new TextDecoder().decode(decrypted);
-            } catch (error) {
-              throw new Error('解密失败，请检查密码是否正确');
-            }
-          }
-          
-          // 简单的 Markdown 解析函数
-          async function markdownToHtml(markdown: string): Promise<string> {
-            // 基本的 Markdown 解析
-            let html = markdown
-              // 标题
-              .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-              .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-              .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-              // 粗体
-              .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
-              // 斜体
-              .replace(/\*(.*?)\*/gim, '<em>$1</em>')
-              // 列表
-              .replace(/^\- (.*$)/gim, '<li>$1</li>')
-              .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-              // 段落
-              .replace(/^(?!<[h1-6ulli])(.*$)/gim, '<p>$1</p>')
-              // 空行
-              .replace(/\n\n/gim, '</p><p>')
-              .replace(/<p><\/p>/gim, '');
-            
-            return html;
-          }
-        })();
-      </script>
-    </>
-  )}
 </BaseLayout>
