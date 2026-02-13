@@ -68,20 +68,24 @@ if (!isEncrypted) {
     {isEncrypted ? (
       <div id="encrypted-content">
         <div class="encryption-container">
-          <h2>🔒 文章已加密</h2>
+          <div class="encryption-icon">🔒</div>
+          <h2>文章已加密</h2>
           {encryptionHint && (
             <p class="encryption-hint">{encryptionHint}</p>
           )}
-          <form id="decryption-form">
-            <input 
-              type="password" 
-              id="decryption-key" 
-              placeholder="请输入解密密码"
-              required
-            />
-            <button type="submit">解密</button>
+          <form id="decryption-form" novalidate>
+            <div class="input-group">
+              <input 
+                type="password" 
+                id="decryption-key" 
+                placeholder="请输入解密密码"
+              />
+              <button type="submit" class="decrypt-btn">
+                <span class="btn-text">解密</span>
+                <span class="btn-loading" style="display: none;">加载中...</span>
+              </button>
+            </div>
           </form>
-          <p id="decryption-error" class="error-message"></p>
         </div>
         <div id="decrypted-content" style="display: none;">
           <!-- 解密后的内容将通过 JavaScript 动态插入 -->
@@ -90,6 +94,22 @@ if (!isEncrypted) {
     ) : (
       <Content />
     )}
+    
+    <!-- 弹窗提示 -->
+    <div id="notification-popup" class="notification-popup">
+      <div class="notification-content">
+        <div class="notification-icon">
+          <svg class="success-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <svg class="error-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </div>
+        <p class="notification-message"></p>
+      </div>
+    </div>
   
   <!-- Back to Top Button -->
   <button aria-label="Back to Top" class="back-to-top">
@@ -154,81 +174,262 @@ if (!isEncrypted) {
     .encryption-container {
       background-color: var(--bg-color);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 2rem;
-      margin: 2rem 0;
+      border-radius: 16px;
+      padding: 3rem 2rem;
+      margin: 3rem 0;
       text-align: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(8px);
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .encryption-container:hover {
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      transform: translateY(-3px);
+    }
+    
+    .encryption-icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+      animation: pulse 2s infinite;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background-color: rgba(0, 0, 0, 0.05);
+      color: var(--accent-color);
+      margin-bottom: 2rem;
+    }
+    
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+      100% {
+        transform: scale(1);
+      }
     }
     
     .encryption-container h2 {
       margin-top: 0;
       margin-bottom: 1.5rem;
       color: var(--text-color);
+      font-size: 1.75rem;
+      font-weight: 700;
+      font-family: var(--font-sans);
+      letter-spacing: -0.02em;
     }
     
     .encryption-hint {
       color: var(--text-color-secondary);
-      margin-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
       font-style: italic;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      font-family: var(--font-serif);
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
     }
     
     #decryption-form {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
       max-width: 400px;
       margin: 0 auto;
     }
     
+    .input-group {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    
     #decryption-key {
-      padding: 0.75rem 1rem;
+      flex: 1;
+      padding: 1rem 1.25rem;
       border: 1px solid var(--border-color);
-      border-radius: 4px;
+      border-radius: 8px;
       background-color: var(--bg-color);
       color: var(--text-color);
       font-size: 1rem;
+      transition: all 0.3s ease;
     }
     
     #decryption-key:focus {
       outline: none;
       border-color: var(--accent-color);
-      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+      transform: translateY(-1px);
     }
     
-    #decryption-form button {
-      padding: 0.75rem 1.5rem;
+    .decrypt-btn {
+      padding: 1rem 2rem;
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
       background-color: var(--accent-color);
       color: var(--bg-color);
       font-size: 1rem;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      min-width: 120px;
     }
     
-    #decryption-form button:hover {
-      background-color: var(--accent-color-hover);
+    .decrypt-btn:hover {
+      background-color: var(--accent-color);
       transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
     }
     
-    .error-message {
+    .decrypt-btn:active {
+      transform: translateY(0);
+    }
+    
+    .decrypt-btn:disabled {
+      background-color: var(--border-color);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+
+    
+    /* 弹窗提示样式 */
+    .notification-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      z-index: 10000;
+      max-width: 300px;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+    
+    .notification-popup.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      pointer-events: auto;
+    }
+    
+    .notification-content {
+      background-color: rgba(255, 255, 255, 0.95);
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px 20px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: fadeInScale 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(8px);
+    }
+    
+    @keyframes fadeInScale {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    
+    .notification-icon {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+    }
+    
+    .success-icon {
+      display: none;
+      color: #28a745;
+    }
+    
+    .error-icon {
+      display: none;
       color: #dc3545;
-      margin-top: 1rem;
-      font-size: 0.9rem;
+    }
+    
+    .notification-icon.success .success-icon {
+      display: block;
+    }
+    
+    .notification-icon.error .error-icon {
+      display: block;
+    }
+    
+    .notification-message {
+      margin: 0;
+      color: #333333;
+      font-size: 14px;
+      line-height: 1.4;
+      font-weight: 400;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    /* 深色模式适配 */
+    @media (prefers-color-scheme: dark) {
+      .notification-content {
+        background-color: rgba(30, 30, 30, 0.95);
+        border: 1px solid #404040;
+      }
+      
+      .notification-message {
+        color: #f0f0f0;
+      }
+    }
+    
+    [data-theme="dark"] .notification-content {
+      background-color: rgba(30, 30, 30, 0.95);
+      border: 1px solid #404040;
+    }
+    
+    [data-theme="dark"] .notification-message {
+      color: #f0f0f0;
     }
     
     /* 响应式设计 */
     @media (max-width: 600px) {
       .encryption-container {
-        padding: 1.5rem;
+        padding: 2rem 1.5rem;
+        margin: 2rem 0;
       }
       
-      #decryption-form {
-        max-width: 100%;
+      .input-group {
+        flex-direction: column;
+        align-items: stretch;
       }
+      
+      .decrypt-btn {
+        width: 100%;
+      }
+      
+      .notification-popup {
+        max-width: 90%;
+      }
+    }
+    
+    /* 解密后的内容动画 */
+    #decrypted-content {
+      animation: fadeInUp 0.8s ease-out;
     }
   </style>
 
@@ -270,25 +471,68 @@ if (!isEncrypted) {
           // 解密功能
           const decryptionForm = document.getElementById('decryption-form');
           const decryptionKey = document.getElementById('decryption-key') as HTMLInputElement | null;
-          const decryptionError = document.getElementById('decryption-error');
           const encryptedContainer = document.querySelector('.encryption-container') as HTMLElement | null;
           const decryptedContent = document.getElementById('decrypted-content') as HTMLElement | null;
+          const decryptBtn = document.querySelector('.decrypt-btn') as HTMLButtonElement | null;
+          const btnText = document.querySelector('.btn-text') as HTMLElement | null;
+          const btnLoading = document.querySelector('.btn-loading') as HTMLElement | null;
           
           // 从隐藏元素获取加密的内容
           const encryptedContentStorage = document.getElementById('encrypted-content-storage');
           const encryptedContentFromServer = encryptedContentStorage ? encryptedContentStorage.textContent : '';
           
-          if (decryptionForm && decryptionKey && decryptionError && encryptedContainer && decryptedContent && encryptedContentFromServer) {
+          // 弹窗提示功能
+          function showNotification(message: string, type: 'success' | 'error') {
+            const notification = document.getElementById('notification-popup');
+            const notificationIcon = notification?.querySelector('.notification-icon');
+            const notificationMessage = notification?.querySelector('.notification-message');
+            
+            if (notification && notificationIcon && notificationMessage) {
+              // 设置消息内容和类型
+              notificationMessage.textContent = message;
+              notificationIcon.className = `notification-icon ${type}`;
+              
+              // 显示弹窗
+              notification.classList.add('show');
+              
+              // 3秒后自动隐藏
+              setTimeout(() => {
+                notification.classList.remove('show');
+              }, 3000);
+            }
+          }
+          
+          // 设置加载状态
+          function setLoadingState(isLoading: boolean) {
+            if (decryptBtn && btnText && btnLoading) {
+              decryptBtn.disabled = isLoading;
+              
+              if (isLoading) {
+                btnText.style.display = 'none';
+                btnLoading.style.display = 'inline';
+                decryptBtn.style.opacity = '0.7';
+              } else {
+                btnText.style.display = 'inline';
+                btnLoading.style.display = 'none';
+                decryptBtn.style.opacity = '1';
+              }
+            }
+          }
+          
+          if (decryptionForm && decryptionKey && encryptedContainer && decryptedContent && encryptedContentFromServer) {
             decryptionForm.addEventListener('submit', async (e) => {
               e.preventDefault();
               
               const password = decryptionKey.value.trim();
               if (!password) {
-                decryptionError.textContent = '请输入密码';
+                showNotification('请输入密码', 'error');
                 return;
               }
               
               try {
+                // 设置加载状态
+                setLoadingState(true);
+                
                 // 使用 Web Crypto API 进行解密
                 const decryptedText = await decryptWithWebCrypto(encryptedContentFromServer, password);
                 
@@ -300,10 +544,12 @@ if (!isEncrypted) {
                 // 解析 Markdown 并显示内容
                 decryptedContent.innerHTML = await markdownToHtml(decryptedText);
                 
+                // 显示成功提示
+                showNotification('解密成功！', 'success');
+                
                 // 显示解密后的内容
                 encryptedContainer.style.display = 'none';
                 decryptedContent.style.display = 'block';
-                decryptionError.textContent = '';
                 
                 // 触发内容进入动画
                 decryptedContent.style.opacity = '0';
@@ -316,8 +562,11 @@ if (!isEncrypted) {
                 });
                 
               } catch (error) {
-                decryptionError.textContent = '解密失败，请检查密码是否正确';
+                showNotification('解密失败，请检查密码是否正确', 'error');
                 console.error('解密错误:', error);
+              } finally {
+                // 重置加载状态
+                setLoadingState(false);
               }
             });
           }
