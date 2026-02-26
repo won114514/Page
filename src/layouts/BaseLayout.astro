@@ -76,15 +76,25 @@ const { title } = Astro.props;
 
     <!-- 客户端导航优化脚本 -->
     <script>
-      // 隐藏加载指示器
-      function hideLoadingIndicator() {
+      // 统一清理所有加载元素
+      function cleanUpLoadingElements() {
         const loadingOverlay = document.querySelector('.loading-overlay') as HTMLElement;
         if (loadingOverlay) {
-          (loadingOverlay as HTMLElement).style.opacity = '0';
+          loadingOverlay.style.opacity = '0';
           setTimeout(() => {
-            (loadingOverlay as HTMLElement).style.display = 'none';
+            loadingOverlay.style.display = 'none';
           }, 300);
         }
+
+        const transitionOverlay = document.querySelector('.page-transition-overlay');
+        if (transitionOverlay) {
+          transitionOverlay.remove();
+        }
+      }
+
+      // 隐藏加载指示器（向后兼容）
+      function hideLoadingIndicator() {
+        cleanUpLoadingElements();
       }
 
       // 显示加载指示器
@@ -98,17 +108,21 @@ const { title } = Astro.props;
         }
       }
 
-      // 初始化：页面加载完成后隐藏加载指示器
-      window.addEventListener('load', () => {
-        hideLoadingIndicator();
-      });
+      // 初始化：在多种页面加载时机都清理加载元素
+      function initializePage() {
+        cleanUpLoadingElements();
+      }
+
+      // 页面DOM内容加载完成时清理
+      document.addEventListener('DOMContentLoaded', initializePage);
+
+      // 页面完全加载完成时清理
+      window.addEventListener('load', initializePage);
 
       // 处理浏览器返回按钮的情况
       window.addEventListener('pageshow', (e) => {
-        // 当从浏览器缓存中加载页面时（如使用返回按钮），隐藏加载指示器
-        if (e.persisted) {
-          hideLoadingIndicator();
-        }
+        // 当从浏览器缓存中加载页面时（如使用返回按钮），清理所有加载元素
+        initializePage();
       });
 
       // 页面切换时显示加载指示器
@@ -185,17 +199,7 @@ const { title } = Astro.props;
         }
       });
 
-      // 页面加载完成后隐藏过渡动画
-      window.addEventListener('load', () => {
-        const transitionOverlay = document.querySelector('.page-transition-overlay') as HTMLElement;
-        if (transitionOverlay) {
-          transitionOverlay.style.opacity = '0';
-          setTimeout(() => {
-            transitionOverlay.remove();
-          }, 400);
-        }
-        hideLoadingIndicator();
-      });
+
 
       // 资源预加载：预加载导航链接的资源
       const preloadLinks = () => {
