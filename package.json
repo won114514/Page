@@ -11,7 +11,7 @@
   "dependencies": {
     "@astrojs/mdx": "^4.3.13",
     "@astrojs/rss": "^4.0.15",
-    "astro": "^5.17.1",
+    "astro": "^5.18.0",
     "fuse.js": "^7.1.0",
     "markdown-it": "^14.1.0",
     "node-html-parser": "^7.0.2",
@@ -24,7 +24,7 @@
     "unified": "^11.0.5"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.4",
+    "@astrojs/check": "0.9.6",
     "@types/markdown-it": "^14.1.2",
     "@types/sanitize-html": "^2.16.0",
     "chrome-launcher": "^1.1.2",
