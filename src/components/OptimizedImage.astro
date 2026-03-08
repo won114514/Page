@@ -1,0 +1,128 @@
+---
+interface Props {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  className?: string;
+  loading?: 'lazy' | 'eager' | 'auto';
+}
+
+const { src, alt, width, height, className = '', loading = 'lazy' } = Astro.props;
+
+// 尝试加载图片映射
+let imageData = null;
+try {
+  // 构建图片相对路径
+  const relativeSrc = src.replace(/^\/content\/posts\/assets\/img\//, '');
+  
+  // 加载图片映射文件
+  const imageMap = await import('../../public/assets/image-map.json');
+  imageData = imageMap.default[relativeSrc];
+} catch (error) {
+  console.warn('Failed to load image map:', error);
+}
+
+// 如果没有找到优化数据，使用原始图片
+const imageSrc = imageData ? imageData.original : src;
+const imageWidth = width || (imageData?.placeholder.width || 800);
+const imageHeight = height || (imageData?.placeholder.height || 600);
+const placeholder = imageData?.placeholder.base64;
+
+// 生成优化后的图片格式源
+const sources = imageData?.optimized.map((optimizedSrc: string) => {
+  const format = optimizedSrc.split('.').pop();
+  return {
+    srcset: `/${optimizedSrc}`,
+    type: `image/${format}`,
+  };
+}) || [];
+---
+
+<div class={`optimized-image-container ${className}`}>
+  {placeholder && (
+    <div 
+      class="image-placeholder"
+      style={{
+        backgroundImage: `url(${placeholder})`,
+        width: `${imageWidth}px`,
+        height: `${imageHeight}px`,
+        aspectRatio: `${imageWidth} / ${imageHeight}`,
+      }}
+    ></div>
+  )}
+  <picture>
+    {sources.map((source, index) => (
+      <source 
+        key={index} 
+        srcset={source.srcset} 
+        type={source.type} 
+      />
+    ))}
+    <img
+      src={`/${imageSrc}`}
+      alt={alt}
+      width={imageWidth}
+      height={imageHeight}
+      loading={loading}
+      class="optimized-image"
+      style={{
+        width: '100%',
+        height: 'auto',
+      }}
+    />
+  </picture>
+</div>
+
+<style scoped>
+  .optimized-image-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+  }
+
+  .image-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    filter: blur(8px);
+    transform: scale(1.05);
+    z-index: 1;
+  }
+
+  .optimized-image {
+    position: relative;
+    z-index: 2;
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    transition: opacity 0.3s ease;
+  }
+
+  .optimized-image.loaded {
+    opacity: 1;
+  }
+
+  /* 确保图片容器保持正确的宽高比 */
+  .optimized-image-container {
+    display: block;
+  }
+</style>
+
+<script>
+  // 图片加载完成后添加加载完成类
+  document.addEventListener('DOMContentLoaded', () => {
+    const images = document.querySelectorAll('.optimized-image');
+    images.forEach(img => {
+      img.addEventListener('load', () => {
+        img.classList.add('loaded');
+      });
+    });
+  });
+</script>

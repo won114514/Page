@@ -127,6 +127,32 @@ article img:hover {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
+/* 优化图片容器样式 */
+article .optimized-image-container {
+  margin: 1.5rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
+}
+
+article .optimized-image {
+  border: none;
+  margin: 0;
+  box-shadow: none;
+}
+
+article .optimized-image:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* 暗色模式下的优化图片样式 */
+[data-theme="dark"] article .optimized-image-container {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-color: var(--border-color);
+}
+
 /* 图片说明文字样式 */
 article figure {
   margin: 1.5rem 0;

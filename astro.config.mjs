@@ -2,9 +2,11 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import { config } from './src/config';
 import remarkGfm from 'remark-gfm';
+import remarkImageOptimizer from './src/plugins/remarkImageOptimizer';
+import imageOptimizerPlugin from './src/plugins/imageOptimizerPlugin';
 
 export default defineConfig({
-  integrations: [mdx()],
+  integrations: [mdx(), imageOptimizerPlugin()],
   markdown: {
     syntaxHighlight: 'shiki',
     shikiConfig: {
@@ -18,7 +20,7 @@ export default defineConfig({
       wrap: true,
       lineNumbers: true,
     },
-    remarkPlugins: [remarkGfm],
+    remarkPlugins: [remarkGfm, remarkImageOptimizer],
   },
   vite: {
     server: {

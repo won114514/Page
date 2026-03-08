@@ -1,0 +1,14 @@
+{
+  "src\\content\\posts\\assets\\img\\touxiang.jpg": {
+    "original": "public\\assets\\optimized\\touxiang.jpg",
+    "optimized": [
+      "public\\assets\\optimized\\touxiang.webp",
+      "public\\assets\\optimized\\touxiang.avif"
+    ],
+    "placeholder": {
+      "base64": "data:image/jpeg;base64,/9j/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAUABQDASIAAhEBAxEB/8QAGQABAAMBAQAAAAAAAAAAAAAAAAUGBwII/8QAKBAAAgEDAwMDBQEAAAAAAAAAAQIDBAURAAYSITFBByJRCBMyYWKR/8QAFgEBAQEAAAAAAAAAAAAAAAAAAgQD/8QAHBEBAQACAgMAAAAAAAAAAAAAAQACAxEhMTNR/9oADAMBAAIRAxEAPwDv1a35PHdq61UFe9LDRMkTJECDUORl8yA9AuQMeTnVK29vy52yuSWO5yRxA5ZZHMqP/JUnz2yOo1qO19oWSn9WdwXXcNdCsq1S1FOJVZYUWQZALMOHIkMpB6/HU603dlbt22241F7u9jgjgyxjkVOEikfi0eSX6HoB503Y9xx1HAfaCsO9LHebZDWRV8EJcDnFM/Fo3wCVOe+M9+x01XfSPbNnXZ6VktEXiuFRLV06zL7kgZsRg/HsVTj96a1FSjyMB4oT6ibFRyWi33x/umsWqio+JfMbRks3VfnPnWAXVVnrqUOiAOmG4r3zyGmmjl4avT672zQ08VHRU9NToEhgjWKNR4VQAB/g0001pQN//9k=",
+      "width": 1080,
+      "height": 1080
+    }
+  }
+}

@@ -144,6 +144,7 @@ console.log(counter.reset());     // 输出: 0
 ### 图片引用
 
 ![Markdown Logo](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Markdown%20logo%20simple%20design%20blue%20and%20white&image_size=square)
+![头像](assets/img/touxiang.jpg)
 
 ### 超链接
 

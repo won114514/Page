@@ -9,6 +9,7 @@
     "lighthouse": "powershell -Command \"if (!(Test-Path -Path './lighthouse-reports')) { New-Item -ItemType Directory -Path './lighthouse-reports' -Force } ; $timestamp = Get-Date -Format 'yyyy-MM-dd-HH-mm-ss' ; lighthouse http://localhost:3000 --output=html --output-path=./lighthouse-reports/lighthouse-report-$timestamp.html --only-categories=performance,accessibility,best-practices,seo\""
   },
   "dependencies": {
+    "@astrojs/image": "^0.18.0",
     "@astrojs/mdx": "^4.3.13",
     "@astrojs/rss": "^4.0.15",
     "astro": "^5.18.0",
@@ -19,9 +20,11 @@
     "remark-html": "^16.0.1",
     "remark-parse": "^11.0.0",
     "sanitize-html": "^2.17.0",
+    "sharp": "^0.34.5",
     "shiki": "^1.17.0",
     "strip-markdown": "^6.0.0",
-    "unified": "^11.0.5"
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.6",
