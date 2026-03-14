@@ -7,6 +7,14 @@ import sanitizeHtml from 'sanitize-html';
 
 const markdownParser = new MarkdownIt();
 
+// 图片路径映射
+const imageMap: Record<string, string> = {
+  'content/posts/assets/img/': '/assets/optimized/',
+  '/content/posts/assets/img/': '/assets/optimized/',
+  'assets/img/': '/assets/optimized/',
+  '/assets/img/': '/assets/optimized/',
+};
+
 export async function GET(context: any) {
   if (!context.site) {
     throw Error('site not set');
@@ -34,12 +42,29 @@ export async function GET(context: any) {
     const images = html.querySelectorAll('img');
 
     for (const img of images) {
-      const src = img.getAttribute('src');
+      let src = img.getAttribute('src');
       if (!src) continue;
 
-      if (src.startsWith('/')) {
-        // 处理绝对路径的图片
-        img.setAttribute('src', new URL(src, context.site).href);
+      // 转换本地图片路径为优化后的图片路径
+      for (const [oldPath, newPath] of Object.entries(imageMap)) {
+        if (src.includes(oldPath)) {
+          // 提取图片文件名
+          const fileName = src.split('/').pop() || '';
+          // 转换为 WebP 格式路径
+          const optimizedFileName = fileName.replace(/\.[^.]+$/, '.webp');
+          src = newPath + optimizedFileName;
+          break;
+        }
+      }
+
+      // 处理绝对路径的图片（外部链接保持不变）
+      if (src.startsWith('http')) {
+        // 外部链接，保持原样
+      } else if (src.startsWith('/')) {
+        // 绝对路径，移除开头的 /
+        img.setAttribute('src', src.substring(1));
+      } else {
+        // 相对路径，保持原样
       }
     }
 
