@@ -72,7 +72,7 @@ export async function GET(context: any) {
       title: post.data.title,
       description: post.data.excerpt || '',
       pubDate: post.data.date,
-      link: `/posts/${post.slug}`,
+      link: `/posts/${post.id}`,
       content: sanitizeHtml(html.toString(), {
         allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
       }),

@@ -33,7 +33,7 @@ export async function GET() {
     
     // 生成搜索索引项
     searchIndex.push({
-      slug: post.slug,
+      slug: post.id,
       title: post.data.title,
       date: post.data.date.toISOString().split('T')[0],
       excerpt: post.data.excerpt || plainText.substring(0, 150) + '...',

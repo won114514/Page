@@ -11,8 +11,10 @@
   "dependencies": {
     "@astrojs/image": "^0.18.0",
     "@astrojs/mdx": "^4.3.13",
+    "@astrojs/partytown": "^2.1.5",
+    "@astrojs/react": "^5.0.1",
     "@astrojs/rss": "^4.0.15",
-    "astro": "^5.18.0",
+    "astro": "^6.0.8",
     "fuse.js": "^7.1.0",
     "markdown-it": "^14.1.0",
     "node-html-parser": "^7.0.2",

@@ -37,7 +37,9 @@ const { title } = Astro.props;
       })();
     </script>
     
-    <style is:global>@import url('src/styles/main.css');</style>
+    <style is:global>
+      @import '../styles/main.css';
+    </style>
   </head>
   <body>
     <!-- 加载指示器 -->

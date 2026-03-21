@@ -1,7 +1,7 @@
 ---
 import { config } from '@/config';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 
 // 获取所有非草稿通知，并按日期倒序排序
 const allNotifications = await getCollection('notifications', ({ data }) => {
@@ -17,7 +17,7 @@ allNotifications.sort((a, b) => {
 // 预渲染所有通知内容
 const renderedNotifications = await Promise.all(
   allNotifications.map(async (notification) => {
-    const { Content } = await notification.render();
+    const { Content } = await render(notification);
     return { ...notification, Content };
   })
 );
