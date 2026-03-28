@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
-import ExportButton from '../../components/ExportButton.astro';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts', ({ data }) => {
@@ -45,15 +44,6 @@ const { Content } = await render(post);
     </div>
     <Content />
   </article>
-  
-  <!-- Export Buttons -->
-  {post.data.export !== false && (
-    <ExportButton 
-      title={post.data.title} 
-      content={post.body || ''} 
-      markdown={post.body || ''} 
-    />
-  )}
   
   <!-- Back to Top Button -->
   <button aria-label="Back to Top" class="back-to-top">
