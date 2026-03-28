@@ -1,0 +1,307 @@
+---
+interface Props {
+  title: string;
+  content: string;
+  markdown: string;
+}
+
+const { title, content, markdown } = Astro.props;
+---
+
+<div class="export-buttons" data-markdown={markdown || ''}>
+  <button class="export-button" data-format="pdf" aria-label="导出为PDF">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+      <polyline points="14 2 14 8 20 8"></polyline>
+      <line x1="16" y1="13" x2="8" y2="13"></line>
+      <line x1="16" y1="17" x2="8" y2="17"></line>
+      <polyline points="10 9 9 9 8 9"></polyline>
+    </svg>
+    PDF
+  </button>
+  <button class="export-button" data-format="word" aria-label="导出为Word">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+      <polyline points="14 2 14 8 20 8"></polyline>
+      <line x1="16" y1="13" x2="8" y2="13"></line>
+      <line x1="16" y1="17" x2="8" y2="17"></line>
+      <polyline points="10 9 9 9 8 9"></polyline>
+    </svg>
+    Word
+  </button>
+  <button class="export-button" data-format="markdown" aria-label="导出为Markdown">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+      <polyline points="14 2 14 8 20 8"></polyline>
+      <line x1="16" y1="13" x2="8" y2="13"></line>
+      <line x1="16" y1="17" x2="8" y2="17"></line>
+      <polyline points="10 9 9 9 8 9"></polyline>
+    </svg>
+    Markdown
+  </button>
+</div>
+
+<style scoped>
+  .export-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+  }
+
+  .export-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .export-button:hover {
+    background-color: var(--border-color);
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .export-button:active {
+    transform: translateY(0);
+  }
+
+  .export-button svg {
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 600px) {
+    .export-buttons {
+      flex-direction: column;
+    }
+
+    .export-button {
+      justify-content: center;
+    }
+  }
+</style>
+
+<script>
+  import jsPDF from 'jspdf';
+  import markdownit from 'markdown-it';
+  import html2canvas from 'html2canvas';
+  import { Document, Packer, Paragraph, TextRun, HeadingLevel, Header, Footer, PageNumber, PageBreak } from 'docx';
+
+  // Type definitions
+  interface HTMLElementWithDataset extends HTMLElement {
+    dataset: Record<string, string>;
+  }
+
+  // 导出为 PDF
+  async function exportToPDF(title: string, content: string, markdown: string) {
+    try {
+      // 创建一个临时的HTML元素来渲染内容
+      const tempElement = document.createElement('div');
+      tempElement.style.position = 'fixed';
+      tempElement.style.top = '-9999px';
+      tempElement.style.left = '-9999px';
+      tempElement.style.width = '800px';
+      tempElement.style.padding = '20px';
+      tempElement.style.backgroundColor = 'white';
+      tempElement.style.fontFamily = 'SimSun, serif';
+      
+      // 渲染Markdown内容
+      const md = new markdownit();
+      const htmlContent = `
+        <h1 style="font-size: 24px; margin-bottom: 20px;">${title}</h1>
+        <div style="font-size: 14px; line-height: 1.6;">
+          ${md.render(markdown || content)}
+        </div>
+      `;
+      
+      tempElement.innerHTML = htmlContent;
+      document.body.appendChild(tempElement);
+      
+      // 使用html2canvas转换为Canvas
+      const canvas = await html2canvas(tempElement, {
+        scale: 2, // 提高分辨率
+        useCORS: true,
+        logging: false
+      });
+      
+      // 从Canvas创建PDF
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      const imgWidth = 190;
+      const pageHeight = 295;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      
+      // 处理多页
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      // 保存文件
+      pdf.save(`${title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+      
+      // 清理临时元素
+      document.body.removeChild(tempElement);
+    } catch (error) {
+      console.error('PDF export error:', error);
+      alert('PDF 导出失败，请尝试其他格式');
+    }
+  }
+
+  // 导出为 Word
+  async function exportToWord(title: string, content: string, markdown: string) {
+    // 使用 Markdown 原文进行处理
+    const textContent = (markdown || content)
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .trim();
+    
+    // 处理Markdown格式
+    const processMarkdown = (text: string) => {
+      const lines = text.split('\n');
+      const elements: Array<{ type: string; text: string }> = [];
+      
+      lines.forEach(line => {
+        const trimmedLine = line.trim();
+        
+        if (trimmedLine === '') {
+          // 空行
+          elements.push({ type: 'empty', text: '' });
+        } else if (trimmedLine.startsWith('# ')) {
+          // 一级标题
+          elements.push({ type: 'heading1', text: trimmedLine.substring(2) });
+        } else if (trimmedLine.startsWith('## ')) {
+          // 二级标题
+          elements.push({ type: 'heading2', text: trimmedLine.substring(3) });
+        } else if (trimmedLine.startsWith('> ')) {
+          // 引用
+          elements.push({ type: 'quote', text: trimmedLine.substring(2) });
+        } else {
+          // 普通文本
+          elements.push({ type: 'paragraph', text: trimmedLine });
+        }
+      });
+      
+      return elements;
+    };
+    
+    const elements = processMarkdown(textContent);
+    
+    // 创建文档
+    const doc = new Document({
+      sections: [
+        {
+          properties: {},
+          children: [
+            // 标题
+            new Paragraph({
+              text: title,
+              heading: HeadingLevel.HEADING_1,
+            }),
+            // 内容元素
+            ...elements.map(element => {
+              switch (element.type) {
+                case 'heading1':
+                  return new Paragraph({
+                    text: element.text,
+                    heading: HeadingLevel.HEADING_1,
+                  });
+                case 'heading2':
+                  return new Paragraph({
+                    text: element.text,
+                    heading: HeadingLevel.HEADING_2,
+                  });
+                case 'quote':
+                  return new Paragraph({
+                    text: element.text,
+                    style: 'Quote',
+                  });
+                case 'empty':
+                  return new Paragraph({ text: '' });
+                default:
+                  return new Paragraph({ text: element.text });
+              }
+            }),
+          ],
+        },
+      ],
+    });
+
+    try {
+      // 打包文档为 blob
+      const blob = await Packer.toBlob(doc);
+      
+      // 创建下载链接
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${title.replace(/[^a-zA-Z0-9]/g, '_')}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Word export error:', error);
+      alert('Word 导出失败，请尝试其他格式');
+    }
+  }
+
+  // 导出为 Markdown
+  function exportToMarkdown(title: string, markdown: string) {
+    const content = `# ${title}\n\n${markdown}`;
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title.replace(/[^a-zA-Z0-9]/g, '_')}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // 绑定事件
+  document.querySelectorAll('.export-button').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const format = (button as HTMLElementWithDataset).dataset.format || '';
+      const titleElement = document.querySelector('h1');
+      const title = titleElement?.textContent || 'Untitled';
+      const contentElement = document.querySelector('article');
+      const content = contentElement?.innerHTML || '';
+      const exportButtonsElement = button.closest('.export-buttons');
+      const markdown = (exportButtonsElement as HTMLElementWithDataset)?.dataset.markdown || '';
+
+      switch (format) {
+        case 'pdf':
+          await exportToPDF(title, content, markdown);
+          break;
+        case 'word':
+          await exportToWord(title, content, markdown);
+          break;
+        case 'markdown':
+          exportToMarkdown(title, markdown);
+          break;
+      }
+    });
+  });
+</script>

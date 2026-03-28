@@ -15,7 +15,10 @@
     "@astrojs/react": "^5.0.1",
     "@astrojs/rss": "^4.0.15",
     "astro": "^6.0.8",
+    "docx": "^9.6.1",
     "fuse.js": "^7.1.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
     "markdown-it": "^14.1.0",
     "node-html-parser": "^7.0.2",
     "remark-gfm": "^4.0.1",
@@ -30,6 +33,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.6",
+    "@types/html2canvas": "^1.0.0",
     "@types/markdown-it": "^14.1.2",
     "@types/sanitize-html": "^2.16.0",
     "chrome-launcher": "^1.1.2",
