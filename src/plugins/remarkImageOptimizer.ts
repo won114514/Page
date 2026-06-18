@@ -1,24 +1,22 @@
 import { visit } from 'unist-util-visit';
-import { Node } from 'unist';
 
-interface ImageNode extends Node {
+interface ImageNode {
   type: 'image';
   url: string;
   alt: string;
   title?: string;
 }
 
-interface ImageData {
-  src: string;
-  alt: string;
-  title?: string;
+interface HtmlNode {
+  type: 'html';
+  value: string;
 }
 
 /**
  * Remark 插件，用于将 Markdown 中的图片转换为优化的图片组件
  */
 export default function remarkImageOptimizer() {
-  return function (tree: Node) {
+  return function (tree: any) {
     visit(tree, 'image', (node: ImageNode) => {
       // 检查是否是本地图片路径
       if (node.url.startsWith('/content/posts/assets/img/') || 
@@ -28,10 +26,9 @@ export default function remarkImageOptimizer() {
         const src = node.url.replace(/^\/content\/posts\/assets\/img\//, '/content/posts/assets/img/');
         
         // 替换为 Astro 组件语法
-        // @ts-ignore - 扩展 node 类型
-        node.type = 'html';
-        // @ts-ignore - 扩展 node 类型
-        node.value = `
+        const htmlNode = node as unknown as HtmlNode;
+        htmlNode.type = 'html';
+        htmlNode.value = `
           <OptimizedImage
             src="${src}"
             alt="${node.alt}"

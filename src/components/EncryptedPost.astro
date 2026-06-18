@@ -1,0 +1,201 @@
+---
+interface Props {
+  payload: string;
+}
+
+const { payload } = Astro.props;
+---
+
+<div class="encrypted-post" data-encrypted-payload={payload}>
+  <div class="encrypted-post__card">
+    <div class="encrypted-post__icon" aria-hidden="true">🔐</div>
+    <div>
+      <h2>这是一篇加密文章</h2>
+      <p>请输入文章密码。解锁后内容会在当前位置渲染，并保持原有 Markdown 排版样式。</p>
+    </div>
+  </div>
+
+  <form class="encrypted-post__form">
+    <label for="encrypted-post-password">文章密码</label>
+    <div class="encrypted-post__controls">
+      <input
+        id="encrypted-post-password"
+        name="password"
+        type="password"
+        autocomplete="current-password"
+        placeholder="请输入密码"
+        required
+      />
+      <button type="submit">解锁</button>
+    </div>
+    <p class="encrypted-post__message" role="status" aria-live="polite"></p>
+  </form>
+
+  <div class="encrypted-post__content" hidden></div>
+</div>
+
+<style>
+  .encrypted-post {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    background: var(--bg-color);
+  }
+
+  .encrypted-post__card {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+  }
+
+  .encrypted-post__icon {
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .encrypted-post h2 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  .encrypted-post p {
+    margin: 0;
+  }
+
+  .encrypted-post__form {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .encrypted-post__controls {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .encrypted-post input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    font: inherit;
+  }
+
+  .encrypted-post button {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--accent-color);
+    border-radius: 8px;
+    background: var(--accent-color);
+    color: var(--bg-color);
+    cursor: pointer;
+    font: inherit;
+  }
+
+  .encrypted-post__message {
+    min-height: 1.5em;
+    color: var(--accent-color);
+  }
+
+  .encrypted-post__content[hidden] {
+    display: none;
+  }
+
+  .encrypted-post__content {
+    margin-top: 1.5rem;
+  }
+
+  @media (max-width: 520px) {
+    .encrypted-post__card,
+    .encrypted-post__controls {
+      flex-direction: column;
+    }
+
+    .encrypted-post button {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  interface EncryptedPayload {
+    algorithm: 'AES-GCM';
+    kdf: 'PBKDF2';
+    iterations: number;
+    hash: 'SHA-256';
+    salt: string;
+    iv: string;
+    data: string;
+  }
+
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+
+  function base64ToBytes(value: string) {
+    return Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
+  }
+
+  async function deriveKey(password: string, payload: EncryptedPayload) {
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(password),
+      'PBKDF2',
+      false,
+      ['deriveKey']
+    );
+
+    return crypto.subtle.deriveKey(
+      {
+        name: payload.kdf,
+        salt: base64ToBytes(payload.salt),
+        iterations: payload.iterations,
+        hash: payload.hash,
+      },
+      keyMaterial,
+      { name: payload.algorithm, length: 256 },
+      false,
+      ['decrypt']
+    );
+  }
+
+  async function decryptHtml(password: string, payload: EncryptedPayload) {
+    const key = await deriveKey(password, payload);
+    const decrypted = await crypto.subtle.decrypt(
+      { name: payload.algorithm, iv: base64ToBytes(payload.iv) },
+      key,
+      base64ToBytes(payload.data)
+    );
+
+    return decoder.decode(decrypted);
+  }
+
+  document.querySelectorAll<HTMLElement>('.encrypted-post').forEach((container) => {
+    const form = container.querySelector<HTMLFormElement>('.encrypted-post__form');
+    const input = container.querySelector<HTMLInputElement>('input[name="password"]');
+    const message = container.querySelector<HTMLElement>('.encrypted-post__message');
+    const content = container.querySelector<HTMLElement>('.encrypted-post__content');
+    const rawPayload = container.dataset.encryptedPayload;
+
+    if (!form || !input || !message || !content || !rawPayload) return;
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      message.textContent = '正在解锁...';
+
+      try {
+        const payload = JSON.parse(rawPayload) as EncryptedPayload;
+        content.innerHTML = await decryptHtml(input.value, payload);
+        content.hidden = false;
+        form.hidden = true;
+        message.textContent = '';
+      } catch {
+        content.hidden = true;
+        content.innerHTML = '';
+        message.textContent = '密码错误或内容已损坏，请重试。';
+      }
+    });
+  });
+</script>

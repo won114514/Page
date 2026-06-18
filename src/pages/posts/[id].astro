@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import EncryptedPost from '../../components/EncryptedPost.astro';
 import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
@@ -33,16 +34,21 @@ const countWords = (content: string) => {
 };
 
 const { post } = Astro.props;
-const { Content } = await render(post);
+const isEncrypted = post.data.encrypted === true;
+const { Content } = isEncrypted ? { Content: null } : await render(post);
 ---
 
 <BaseLayout title={post.data.title}>
   <article>
     <h1>{post.data.title}</h1>
     <div class="post-meta">
-      {new Date(post.data.date).toLocaleDateString('zh-CN')} · {countWords(post.body || '')} 字
+      {new Date(post.data.date).toLocaleDateString('zh-CN')} · {isEncrypted ? '加密内容' : `${countWords(post.body || '')} 字`}
     </div>
-    <Content />
+    {isEncrypted ? (
+      <EncryptedPost payload={post.data.encryptedPayload ?? ''} />
+    ) : Content ? (
+      <Content />
+    ) : null}
   </article>
   
   <!-- Back to Top Button -->
