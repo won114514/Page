@@ -1,11 +1,23 @@
 import { getCollection } from 'astro:content';
-import rss from '@astrojs/rss';
 import { config } from '../config';
 import MarkdownIt from 'markdown-it';
 import { parse as htmlParser } from 'node-html-parser';
 import sanitizeHtml from 'sanitize-html';
 
 const markdownParser = new MarkdownIt();
+
+function escapeXml(value: string | Date): string {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function toAbsoluteUrl(site: string, path: string): string {
+  return new URL(path, site).toString();
+}
 
 // 图片路径映射
 const imageMap: Record<string, string> = {
@@ -21,7 +33,7 @@ export async function GET(context: any) {
   }
 
   const posts = await getCollection('posts', ({ data }) => {
-    return data.draft !== true;
+    return data.draft !== true && data.encrypted !== true;
   });
 
   // 按日期倒序排序
@@ -79,11 +91,34 @@ export async function GET(context: any) {
     });
   }
 
-  return rss({
-    title: config.title,
-    description: config.description,
-    site: config.site,
-    items: feedItems,
-    customData: `<language>zh-CN</language>`,
+  const rssItems = feedItems
+    .map((item) => {
+      const itemUrl = toAbsoluteUrl(config.site, item.link);
+      return `
+    <item>
+      <title>${escapeXml(item.title)}</title>
+      <description>${escapeXml(item.description)}</description>
+      <pubDate>${new Date(item.pubDate).toUTCString()}</pubDate>
+      <link>${escapeXml(itemUrl)}</link>
+      <guid>${escapeXml(itemUrl)}</guid>
+      <content:encoded><![CDATA[${item.content}]]></content:encoded>
+    </item>`;
+    })
+    .join('');
+
+  const rssXml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>${escapeXml(config.title)}</title>
+    <description>${escapeXml(config.description)}</description>
+    <link>${escapeXml(config.site)}</link>
+    <language>zh-CN</language>${rssItems}
+  </channel>
+</rss>`;
+
+  return new Response(rssXml, {
+    headers: {
+      'Content-Type': 'application/rss+xml; charset=utf-8',
+    },
   });
 }

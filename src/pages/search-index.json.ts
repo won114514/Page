@@ -7,7 +7,7 @@ import strip from 'strip-markdown';
 export async function GET() {
   // 获取所有非草稿文章
   const posts = await getCollection('posts', ({ data }) => {
-    return data.draft !== true;
+    return data.draft !== true && data.encrypted !== true;
   });
 
   // 按日期倒序排序
@@ -29,7 +29,7 @@ export async function GET() {
   
   for (const post of posts) {
     // 转换文章内容为纯文本
-    const plainText = await markdownToPlainText(post.body);
+    const plainText = await markdownToPlainText(post.body ?? '');
     
     // 生成搜索索引项
     searchIndex.push({

@@ -8,6 +8,8 @@ const postsCollection = defineCollection({
     date: z.date(),
     excerpt: z.string().optional(),
     draft: z.boolean().default(false),
+    encrypted: z.boolean().default(false),
+    encryptedPayload: z.string().optional(),
   }),
 });
 

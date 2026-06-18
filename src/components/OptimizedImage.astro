@@ -5,20 +5,35 @@ interface Props {
   width?: number;
   height?: number;
   className?: string;
-  loading?: 'lazy' | 'eager' | 'auto';
+  loading?: 'lazy' | 'eager';
 }
 
 const { src, alt, width, height, className = '', loading = 'lazy' } = Astro.props;
 
+interface ImageMapEntry {
+  original: string;
+  optimized: string[];
+  placeholder: {
+    base64: string;
+    width: number;
+    height: number;
+  };
+}
+
+interface ImageSource {
+  srcset: string;
+  type: string;
+}
+
 // 尝试加载图片映射
-let imageData = null;
+let imageData: ImageMapEntry | undefined;
 try {
   // 构建图片相对路径
   const relativeSrc = src.replace(/^\/content\/posts\/assets\/img\//, '');
   
   // 加载图片映射文件
   const imageMap = await import('../../public/assets/image-map.json');
-  imageData = imageMap.default[relativeSrc];
+  imageData = (imageMap.default as Record<string, ImageMapEntry>)[relativeSrc];
 } catch (error) {
   console.warn('Failed to load image map:', error);
 }
@@ -30,7 +45,7 @@ const imageHeight = height || (imageData?.placeholder.height || 600);
 const placeholder = imageData?.placeholder.base64;
 
 // 生成优化后的图片格式源
-const sources = imageData?.optimized.map((optimizedSrc: string) => {
+const sources: ImageSource[] = imageData?.optimized.map((optimizedSrc) => {
   const format = optimizedSrc.split('.').pop();
   return {
     srcset: `/${optimizedSrc}`,
@@ -52,9 +67,8 @@ const sources = imageData?.optimized.map((optimizedSrc: string) => {
     ></div>
   )}
   <picture>
-    {sources.map((source, index) => (
+    {sources.map((source) => (
       <source 
-        key={index} 
         srcset={source.srcset} 
         type={source.type} 
       />
