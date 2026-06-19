@@ -31,14 +31,6 @@ export default defineConfig({
     build: {
       minify: 'terser',
       cssMinify: true,
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            mathjax: ['mathjax'],
-            search: ['fuse.js'],
-          },
-        },
-      },
     },
   },
   output: 'static',

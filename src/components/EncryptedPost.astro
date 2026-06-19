@@ -1,0 +1,361 @@
+---
+interface Props {
+  payload: string;
+}
+
+const { payload } = Astro.props;
+---
+
+<div class="encrypted-post" data-encrypted-payload={payload}>
+  <div class="encrypted-post__glow" aria-hidden="true"></div>
+
+  <div class="encrypted-post__card">
+    <div class="encrypted-post__icon" aria-hidden="true">
+      <span>🔐</span>
+    </div>
+    <div class="encrypted-post__intro">
+      <p class="encrypted-post__eyebrow">Private Article</p>
+      <h2>这是一篇加密文章</h2>
+      <p>输入密码后即可在原位置展开正文，解锁后的内容会沿用站点文章样式，保持 Markdown 排版不变形。</p>
+    </div>
+  </div>
+
+  <form class="encrypted-post__form">
+    <label for="encrypted-post-password">文章密码</label>
+    <div class="encrypted-post__controls">
+      <div class="encrypted-post__input-wrap">
+        <span class="encrypted-post__input-icon" aria-hidden="true">✦</span>
+        <input
+          id="encrypted-post-password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="请输入密码"
+          required
+        />
+      </div>
+      <button type="submit">
+        <span>解锁</span>
+        <span aria-hidden="true">→</span>
+      </button>
+    </div>
+    <div class="encrypted-post__hint-row">
+      <span>端侧解密</span>
+      <span>AES-GCM</span>
+      <span>格式保持</span>
+    </div>
+    <p class="encrypted-post__message" role="status" aria-live="polite"></p>
+  </form>
+
+  <div class="encrypted-post__content" hidden></div>
+</div>
+
+<style>
+  .encrypted-post {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--accent-color) 28%, var(--border-color));
+    border-radius: 24px;
+    padding: clamp(1.35rem, 4vw, 2.25rem);
+    margin: 2rem 0;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--accent-color) 10%, transparent), transparent 38%),
+      linear-gradient(180deg, color-mix(in srgb, var(--bg-color) 96%, white), var(--bg-color));
+    box-shadow: 0 18px 55px rgba(15, 23, 42, 0.12);
+  }
+
+  [data-theme="dark"] .encrypted-post {
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--accent-color) 16%, transparent), transparent 42%),
+      linear-gradient(180deg, color-mix(in srgb, var(--bg-color) 88%, white), var(--bg-color));
+    box-shadow: 0 18px 55px rgba(0, 0, 0, 0.35);
+  }
+
+  .encrypted-post__glow {
+    position: absolute;
+    inset: -35% -15% auto auto;
+    z-index: -1;
+    width: 16rem;
+    height: 16rem;
+    border-radius: 999px;
+    background: radial-gradient(circle, color-mix(in srgb, var(--accent-color) 30%, transparent), transparent 68%);
+    filter: blur(8px);
+    opacity: 0.85;
+  }
+
+  .encrypted-post__card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .encrypted-post__icon {
+    display: grid;
+    place-items: center;
+    width: 3.75rem;
+    height: 3.75rem;
+    border: 1px solid color-mix(in srgb, var(--accent-color) 28%, transparent);
+    border-radius: 20px;
+    background: color-mix(in srgb, var(--accent-color) 12%, var(--bg-color));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  }
+
+  .encrypted-post__icon span {
+    font-size: 1.85rem;
+    line-height: 1;
+  }
+
+  .encrypted-post__intro {
+    min-width: 0;
+  }
+
+  .encrypted-post__eyebrow {
+    margin: 0 0 0.35rem;
+    color: var(--accent-color);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .encrypted-post h2 {
+    margin-top: 0;
+    margin-bottom: 0.6rem;
+    font-size: clamp(1.35rem, 3vw, 1.8rem);
+  }
+
+  .encrypted-post p {
+    margin: 0;
+  }
+
+  .encrypted-post__form {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1rem;
+    border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--bg-color) 84%, white);
+    backdrop-filter: blur(10px);
+  }
+
+  [data-theme="dark"] .encrypted-post__form {
+    background: color-mix(in srgb, var(--bg-color) 82%, black);
+  }
+
+  .encrypted-post__form label {
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+
+  .encrypted-post__controls {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .encrypted-post__input-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .encrypted-post__input-icon {
+    position: absolute;
+    top: 50%;
+    left: 0.9rem;
+    color: var(--accent-color);
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .encrypted-post input {
+    width: 100%;
+    min-width: 0;
+    padding: 0.85rem 1rem 0.85rem 2.35rem;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    font: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .encrypted-post input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-color) 18%, transparent);
+    outline: none;
+  }
+
+  .encrypted-post button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.85rem 1.15rem;
+    border: 1px solid var(--accent-color);
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 72%, #7c3aed));
+    color: var(--bg-color);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--accent-color) 26%, transparent);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  }
+
+  .encrypted-post button:hover {
+    filter: brightness(1.04);
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px color-mix(in srgb, var(--accent-color) 32%, transparent);
+  }
+
+  .encrypted-post button:disabled {
+    cursor: wait;
+    filter: grayscale(0.15);
+    opacity: 0.75;
+    transform: none;
+  }
+
+  .encrypted-post__hint-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .encrypted-post__hint-row span {
+    padding: 0.28rem 0.6rem;
+    border: 1px solid color-mix(in srgb, var(--accent-color) 20%, var(--border-color));
+    border-radius: 999px;
+    color: color-mix(in srgb, var(--text-color) 78%, var(--accent-color));
+    font-size: 0.78rem;
+    background: color-mix(in srgb, var(--accent-color) 8%, transparent);
+  }
+
+  .encrypted-post__message {
+    min-height: 1.5em;
+    color: var(--accent-color);
+    font-weight: 600;
+  }
+
+  .encrypted-post__message.is-error {
+    color: #ef4444;
+  }
+
+  .encrypted-post__message.is-success {
+    color: #22c55e;
+  }
+
+  .encrypted-post__content[hidden] {
+    display: none;
+  }
+
+  .encrypted-post__content {
+    margin-top: 1.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px dashed color-mix(in srgb, var(--accent-color) 28%, var(--border-color));
+  }
+
+  @media (max-width: 520px) {
+    .encrypted-post__card {
+      grid-template-columns: 1fr;
+    }
+
+    .encrypted-post__controls {
+      flex-direction: column;
+    }
+
+    .encrypted-post button {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  interface EncryptedPayload {
+    algorithm: 'AES-GCM';
+    kdf: 'PBKDF2';
+    iterations: number;
+    hash: 'SHA-256';
+    salt: string;
+    iv: string;
+    data: string;
+  }
+
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+
+  function base64ToBytes(value: string) {
+    return Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
+  }
+
+  async function deriveKey(password: string, payload: EncryptedPayload) {
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(password),
+      'PBKDF2',
+      false,
+      ['deriveKey']
+    );
+
+    return crypto.subtle.deriveKey(
+      {
+        name: payload.kdf,
+        salt: base64ToBytes(payload.salt),
+        iterations: payload.iterations,
+        hash: payload.hash,
+      },
+      keyMaterial,
+      { name: payload.algorithm, length: 256 },
+      false,
+      ['decrypt']
+    );
+  }
+
+  async function decryptHtml(password: string, payload: EncryptedPayload) {
+    const key = await deriveKey(password, payload);
+    const decrypted = await crypto.subtle.decrypt(
+      { name: payload.algorithm, iv: base64ToBytes(payload.iv) },
+      key,
+      base64ToBytes(payload.data)
+    );
+
+    return decoder.decode(decrypted);
+  }
+
+  document.querySelectorAll<HTMLElement>('.encrypted-post').forEach((container) => {
+    const form = container.querySelector<HTMLFormElement>('.encrypted-post__form');
+    const input = container.querySelector<HTMLInputElement>('input[name="password"]');
+    const message = container.querySelector<HTMLElement>('.encrypted-post__message');
+    const content = container.querySelector<HTMLElement>('.encrypted-post__content');
+    const submitButton = container.querySelector<HTMLButtonElement>('button[type="submit"]');
+    const rawPayload = container.dataset.encryptedPayload;
+
+    if (!form || !input || !message || !content || !rawPayload) return;
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      message.classList.remove('is-error', 'is-success');
+      message.textContent = '正在解锁，请稍候...';
+      if (submitButton) submitButton.disabled = true;
+
+      try {
+        const payload = JSON.parse(rawPayload) as EncryptedPayload;
+        content.innerHTML = await decryptHtml(input.value, payload);
+        content.hidden = false;
+        form.hidden = true;
+        message.classList.add('is-success');
+        message.textContent = '解锁成功。';
+      } catch {
+        content.hidden = true;
+        content.innerHTML = '';
+        message.classList.add('is-error');
+        message.textContent = '密码错误或内容已损坏，请重试。';
+      } finally {
+        if (submitButton) submitButton.disabled = false;
+      }
+    });
+  });
+</script>

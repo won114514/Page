@@ -1,0 +1,10 @@
+---
+title: 加密文章示例
+date: 2026-06-18
+excerpt: 这是一篇用于验证文章加密功能的示例，密码为 demo123。
+draft: false
+encrypted: true
+encryptedPayload: '{"algorithm":"AES-GCM","kdf":"PBKDF2","iterations":150000,"hash":"SHA-256","salt":"ydyraYZ6nz1LmNMWKCMwoQ==","iv":"SmZQ4ouZgQZVClS4","data":"mUlBFTd86xvM10KOB0274xM59IqT+dK7UfHMHkEJmJmRRaFdCfzExglp1PQBEM3a7UV9OIRjzUAQc+MRXUKDurcLmriCQeZHl1FYoPyO9cpgnEEjGoXzsiMi+dBexUOpI7InMGT6qykPgO1msGRU0j8PYvg90xXQnGdsrG4orb18qJJWbWmrP+nrbD+YS3rKS1sTlGichrlpI2gkCv7O34gHWkh8Hk/MkyhT/AFZK4906KB8pgkZRmymAT4L/j3A4tbmXeT8Bep2S229VZxg32leuzd+xzpeOCKkd/khH4fNhvP+aOULj+LU9ESG04I7T+ZJKJ1wII814okVED2BiXrBooVvQN9rlj1CmnSPjCWb66fGY8m3wPZePy028vHC3MKHJzmjPnE0y8TlaARQyn0lfNmMemrJIwrHJublJZ7oiniwLmoxMTClhFS3j9WOq9YkivhLzbPQWLzycJvd1nCaL4hyeSAWcC3j7zeVTOwAA1O2D3GpogbbW2WvoUPmW5cowFkr7b6ppnFuYDfv8RjDEJDrhnNkJ+htIwVoAs2xKRHJ5Xu3lPh6V729rBSjpYX38CHMgvyWoQ/i//Z1pBZ2p4uIAeqyROXHCOyxZK1HC8psqJrCgrYf5mGuO3tTZTecvosLZOdbrIJHVoORb8Uwc+9HRnWlBzpF5FLk9gXQ6Z8iXaEAEayF0T9M2IEz+j4Ytj+U8ER0aTbo2M4Y8a/b3w/f5L6EtYojRkMsfWuATUwGMdg0jlcC99r8vwrSnmXp4EeKmGe3kV1MU33V7vxhm6wDpcBLpYPRmMkSyjHNmpY3QL+NSEu+FSn/NVZsZcXulqJGJuPNgs/QKf8Kfg5+AYVi2Fm6fnNrXT+Pa8Fq66Zh3MzCd8L4LKd2sajneuoI+I8="}'
+---
+
+这篇文章的正文已加密。请输入密码 `demo123` 查看完整内容。
